@@ -35,11 +35,12 @@ public class DesktopLauncher
 			 * destination folder, and description file they must be written in
 			 * that order.
 			 */
-			TexturePacker.process(settings, "assets-raw/images", "../core/assets/images", "canyonbunny.pack");
+		TexturePacker.process(settings, "/wilson-gdx-game-desktop/assets-raw/images",
+			        "../wilson-gdx-game-desktop/assets-raw/images", "canyonbunny.pack");
 		}
 
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.title = "CanyonBunny";
+		config.title = "The Library";
 		config.width = 800;
 		config.height = 480;
 
