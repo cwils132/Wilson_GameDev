@@ -10,31 +10,34 @@ import com.wilson.gdx.game.objects.Mountains;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.game.objects.WaterOverlay;
 
+import com.wilson.gdx.game.objects.BunnyHead;
+import com.wilson.gdx.game.objects.Feather;
+import com.wilson.gdx.game.objects.GoldCoin;
+
 public class Level
 {
+	public BunnyHead bunnyHead;
+	public Array<GoldCoin> goldcoins;
+	public Array<Feather> feathers;
 
 	/**
 	 * At the moment, our level builder is only capable of spawning 4 objects.
-	 * Rocks, Clouds, Mountains, and water overlay. To do this it takes in
-	 * our level PNG file and builds based off of pixels used there.
+	 * Rocks, Clouds, Mountains, and water overlay. To do this it takes in our
+	 * level PNG file and builds based off of pixels used there.
 	 * 
 	 * Most of these objects are loaded in the init() method
 	 */
 	public static final String TAG = Level.class.getName();
 
 	/**
-	 * This takes in RGB values for each pixel
-	 * in the game and spawns them accordingly.
-	 * Rock is green
-	 * Feather is purple
-	 * Coin is yellow
-	 * Player spawn is white
-	 * background is black
+	 * This takes in RGB values for each pixel in the game and spawns them
+	 * accordingly. Rock is green Feather is purple Coin is yellow Player spawn
+	 * is white background is black
+	 * 
 	 * @author Chris
 	 *
 	 */
-	public enum BLOCK_TYPE
-	{
+	public enum BLOCK_TYPE {
 		EMPTY(0, 0, 0), // black
 		ROCK(0, 255, 0), // green
 		PLAYER_SPAWNPOINT(255, 255, 255), // white
@@ -43,18 +46,15 @@ public class Level
 
 		private int color;
 
-		private BLOCK_TYPE(int r, int g, int b)
-		{
+		private BLOCK_TYPE (int r, int g, int b) {
 			color = r << 24 | g << 16 | b << 8 | 0xff;
 		}
 
-		public boolean sameColor(int color)
-		{
+		public boolean sameColor (int color) {
 			return this.color == color;
 		}
 
-		public int getColor()
-		{
+		public int getColor () {
 			return color;
 		}
 	}
@@ -73,21 +73,28 @@ public class Level
 	}
 
 	/**
-	 * Creates an empty list for rocks. Then uses Gdx.files.internal()
-	 * to get a file handle, which in turn is used to create a new Pixmap object.
-	 * This is how it determines what image to render.
+	 * Creates an empty list for rocks. Then uses Gdx.files.internal() to get a
+	 * file handle, which in turn is used to create a new Pixmap object. This is
+	 * how it determines what image to render.
 	 * 
-	 * Init loops through the pixels of our level PNG and scans
-	 * starting at the top left. By doing this we define the game worlds height and
-	 * length while also determining relative scale of our objects.
+	 * Init loops through the pixels of our level PNG and scans starting at the
+	 * top left. By doing this we define the game worlds height and length while
+	 * also determining relative scale of our objects.
 	 * 
-	 * currentPixel keeps track of the color value in the current pixel being looked at.
+	 * currentPixel keeps track of the color value in the current pixel being
+	 * looked at.
+	 * 
 	 * @param filename
 	 */
 	private void init(String filename)
 	{
+		// player character
+		bunnyHead = null;
+
 		// objects
 		rocks = new Array<Rock>();
+		goldcoins = new Array<GoldCoin>();
+		feathers = new Array<Feather>();
 
 		// load image file that represents the level data
 		Pixmap pixmap = new Pixmap(Gdx.files.internal(filename));
@@ -130,14 +137,29 @@ public class Level
 				// player spawn point
 				else if (BLOCK_TYPE.PLAYER_SPAWNPOINT.sameColor(currentPixel))
 				{
+					obj = new BunnyHead();
+					offsetHeight = -3.0f;
+					obj.position.set(pixelX, baseHeight * obj.dimension.y + offsetHeight);
+					bunnyHead = (BunnyHead) obj;
+
 				}
 				// feather
 				else if (BLOCK_TYPE.ITEM_FEATHER.sameColor(currentPixel))
 				{
+					obj = new Feather();
+					offsetHeight = -1.5f;
+					obj.position.set(pixelX, baseHeight * obj.dimension.y + offsetHeight);
+					feathers.add((Feather) obj);
+
 				}
 				// gold coin
 				else if (BLOCK_TYPE.ITEM_GOLD_COIN.sameColor(currentPixel))
 				{
+					obj = new GoldCoin();
+					offsetHeight = -1.5f;
+					obj.position.set(pixelX, baseHeight * obj.dimension.y + offsetHeight);
+					goldcoins.add((GoldCoin) obj);
+
 				}
 				// unknown object/pixel color
 				else
@@ -174,16 +196,38 @@ public class Level
 	{
 		// Draw Mountains
 		mountains.render(batch);
-
 		// Draw Rocks
 		for (Rock rock : rocks)
 			rock.render(batch);
-
+		// Draw Gold Coins
+		for (GoldCoin goldCoin : goldcoins)
+			goldCoin.render(batch);
+		// Draw Feathers
+		for (Feather feather : feathers)
+			feather.render(batch);
+		// Draw Player Character
+		bunnyHead.render(batch);
 		// Draw Water Overlay
 		waterOverlay.render(batch);
-
 		// Draw Clouds
 		clouds.render(batch);
+	}
+
+	public void update(float deltaTime)
+	{
+		// Bunny Head
+		bunnyHead.update(deltaTime);
+		// Rocks
+		for (Rock rock : rocks)
+			rock.update(deltaTime);
+		// Gold Coins
+		for (GoldCoin goldCoin : goldcoins)
+			goldCoin.update(deltaTime);
+		// Feathers
+		for (Feather feather : feathers)
+			feather.update(deltaTime);
+		// Clouds
+		clouds.update(deltaTime);
 	}
 
 }
