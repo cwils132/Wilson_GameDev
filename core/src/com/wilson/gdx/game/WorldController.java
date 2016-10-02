@@ -28,23 +28,79 @@ public class WorldController extends InputAdapter
 	public int lives;
 	public int score;
 
+	public CameraHelper cameraHelper;
+
 	// Rectangles for collision detection
 	private Rectangle r1 = new Rectangle();
 	private Rectangle r2 = new Rectangle();
-	
+
 	private float timeLeftGameOverDelay;
-	
+
+	public WorldController()
+	{
+		init();
+	}
+
+	private void init()
+	{
+		Gdx.input.setInputProcessor(this);
+		cameraHelper = new CameraHelper();
+		lives = Constants.LIVES_START;
+		timeLeftGameOverDelay = 0;
+		initLevel();
+	}
+
+	private void initLevel()
+	{
+		score = 0;
+		level = new Level(Constants.LEVEL_01);
+		cameraHelper.setTarget(level.bunnyHead);
+	}
+
+	/**
+	 * Calls to CameraHelper to update the game as things change with the
+	 * images. Also tells the program to cause the image rotations, and debugs
+	 * as necessary.
+	 * 
+	 * In this case, the debug checks to make sure the program is running
+	 * through the desktop.
+	 * 
+	 * @param deltaTime
+	 */
+	public void update(float deltaTime)
+	{
+		handleDebugInput(deltaTime);
+		if (isGameOver())
+		{
+			timeLeftGameOverDelay -= deltaTime;
+			if (timeLeftGameOverDelay < 0)
+				init();
+		} else
+		{
+			handleInputGame(deltaTime);
+		}
+		level.update(deltaTime);
+		testCollisions();
+		cameraHelper.update(deltaTime);
+		if (!isGameOver() && isPlayerInWater())
+		{
+			lives--;
+			if (isGameOver())
+				timeLeftGameOverDelay = Constants.TIME_DELAY_GAME_OVER;
+			else
+				initLevel();
+		}
+	}
+
 	public boolean isGameOver()
 	{
 		return lives < 0;
 	}
-	
+
 	public boolean isPlayerInWater()
 	{
 		return level.bunnyHead.position.y < -5;
 	}
-
-	public CameraHelper cameraHelper;
 
 	private void testCollisions()
 	{
@@ -134,69 +190,6 @@ public class WorldController extends InputAdapter
 		Gdx.app.log(TAG, "Feather collected");
 	}
 
-	public WorldController()
-	{
-		init();
-	}
-
-	private void init()
-	{
-		Gdx.input.setInputProcessor(this);
-		cameraHelper = new CameraHelper();
-		lives = Constants.LIVES_START;
-		timeLeftGameOverDelay = 0;
-		initLevel();
-	}
-
-	private void initLevel()
-	{
-		score = 0;
-		level = new Level(Constants.LEVEL_01);
-		cameraHelper.setTarget(level.bunnyHead);
-	}
-
-	/**
-	 * Calls to CameraHelper to update the game as things change with the
-	 * images. Also tells the program to cause the image rotations, and debugs
-	 * as necessary.
-	 * 
-	 * In this case, the debug checks to make sure the program is running
-	 * through the desktop.
-	 * 
-	 * @param deltaTime
-	 */
-	public void update(float deltaTime)
-	{
-		handleDebugInput(deltaTime);
-		if (isGameOver())
-		{
-			timeLeftGameOverDelay -= deltaTime;
-			if (timeLeftGameOverDelay < 0)
-			{
-				init();
-			}
-			else
-			{
-				handleInputGame(deltaTime);
-			}
-		}
-		level.update(deltaTime);
-		testCollisions();
-		cameraHelper.update(deltaTime);
-		if (!isGameOver() && isPlayerInWater())
-		{
-			lives--;
-		}
-		if (isGameOver())
-		{
-			timeLeftGameOverDelay = Constants.TIME_DELAY_GAME_OVER;
-		}
-		else
-		{
-			initLevel();
-		}
-	}
-
 	/**
 	 * If the program is running in Desktop mode, keyboard use is enabled. The
 	 * keyboard is used by called InputAdapter. By using the Keys() method
@@ -245,6 +238,19 @@ public class WorldController extends InputAdapter
 			cameraHelper.setZoom(1);
 	}
 
+	/**
+	 * This is set up to handle player inputs on the bunnyHead.
+	 * When left or right is pressed it gets the terminalVelocity
+	 * value of the BunnyHead object and executes movement.
+	 * 
+	 * (Terminal Velocity values actually stored in AbstractGameObject)
+	 * 
+	 * Jump is different however. The calculations are stored in BunnyHead
+	 * since we don't need anything else to be able to jump when we press
+	 * space. It calls to a function setJumping() and it executes
+	 * depending on the situation.
+	 * @param deltaTime
+	 */
 	private void handleInputGame(float deltaTime)
 	{
 		if (cameraHelper.hasTarget(level.bunnyHead))
@@ -281,7 +287,7 @@ public class WorldController extends InputAdapter
 	}
 
 	/**
-	 * Further key input commands. Reset Select next sprite Toggle Camera follow
+	 * Further key input commands. Reset, Select next sprite, Toggle Camera follow
 	 */
 	@Override
 	public boolean keyUp(int keycode)

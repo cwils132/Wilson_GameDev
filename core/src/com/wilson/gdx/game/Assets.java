@@ -69,6 +69,12 @@ public class Assets implements Disposable, AssetErrorListener
 		}
 	}
 
+	/**
+	 * These inner classes define the texture regions of the Texture Atlas
+	 * so the game can find and load them at initialization.
+	 * @author Chris
+	 *
+	 */
 	public class AssetBunny
 	{
 		public final AtlasRegion head;
@@ -131,6 +137,15 @@ public class Assets implements Disposable, AssetErrorListener
 		}
 	}
 
+	/**
+	 * Initializes the Asset Manager for the game. This takes all
+	 * the regions of the atlas and loads them in to the game.
+	 * 
+	 * Objects are broken up in to game objects and decorations.
+	 * Game objects are coins, feathers, fonts, and rocks. Decoration
+	 * is primarily background images.
+	 * @param assetManager
+	 */
 	public void init(AssetManager assetManager)
 	{
 		this.assetManager = assetManager;

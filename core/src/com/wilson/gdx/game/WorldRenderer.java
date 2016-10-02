@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
 import com.wilson.gdx.util.Constants;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -94,7 +95,7 @@ public class WorldRenderer implements Disposable
 		// draw FPS text (anchored to bottom right edge)
 		renderGuiFpsCounter(batch);
 		// draw game over text
-//		renderGuiGameOverMessage(batch);
+		renderGuiGameOverMessage(batch);
 
 		batch.end();
 	}
@@ -181,7 +182,7 @@ public class WorldRenderer implements Disposable
 		fpsFont.draw(batch, "FPS: " + fps, x, y);
 		fpsFont.setColor(1, 1, 1, 1); // white
 	}
-/*
+
 	private void renderGuiGameOverMessage(SpriteBatch batch)
 	{
 		float x = cameraGUI.viewportWidth / 2;
@@ -190,11 +191,11 @@ public class WorldRenderer implements Disposable
 		{
 			BitmapFont fontGameOver = Assets.instance.fonts.defaultBig;
 			fontGameOver.setColor(1, 0.75f, 0.25f, 1);
-			fontGameOver.draw(batch, "GAME OVER", x, y);
+			fontGameOver.draw(batch, "GAME OVER", x, y, 0, Align.center, false);
 			fontGameOver.setColor(1, 1, 1, 1);
 		}
 	}
-*/
+
 	/**
 	 * Lets us resize the camera viewport, effectively zooming out.
 	 * 
