@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
 import com.wilson.gdx.util.Constants;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -59,8 +60,9 @@ public class WorldRenderer implements Disposable
 	}
 
 	/**
-	 * Initiates the world rendering and calls to the other classes
-	 * to perform their duties.
+	 * Initiates the world rendering and calls to the other classes to perform
+	 * their duties.
+	 * 
 	 * @param batch
 	 */
 	private void renderWorld(SpriteBatch batch)
@@ -73,9 +75,10 @@ public class WorldRenderer implements Disposable
 	}
 
 	/**
-	 * This creates the GUI. To do this is makes a camera
-	 * specifically for GUI elements that will not move
-	 * position on our screen when the character moves.
+	 * This creates the GUI. To do this is makes a camera specifically for GUI
+	 * elements that will not move position on our screen when the character
+	 * moves.
+	 * 
 	 * @param batch
 	 */
 	private void renderGui(SpriteBatch batch)
@@ -85,28 +88,34 @@ public class WorldRenderer implements Disposable
 
 		// draw collected gold coins icon + text (anchored to top left edge)
 		renderGuiScore(batch);
+		// draw collected feather icon (anchored to top left edge)
+		renderGuiFeatherPowerup(batch);
 		// draw extra lives icon + text (anchored to top right edge)
 		renderGuiExtraLive(batch);
 		// draw FPS text (anchored to bottom right edge)
 		renderGuiFpsCounter(batch);
+		// draw game over text
+		renderGuiGameOverMessage(batch);
 
 		batch.end();
 	}
 
 	/**
 	 * Adds the score to our game
+	 * 
 	 * @param batch
 	 */
 	private void renderGuiScore(SpriteBatch batch)
 	{
 		float x = -15;
 		float y = -15;
-		batch.draw(Assets.instance.saphire.saphire, x, y, 50, 50, 100, 100, 0.35f, -0.35f, 0);
+		batch.draw(Assets.instance.goldCoin.goldCoin, x, y, 50, 50, 100, 100, 0.35f, -0.35f, 0);
 		Assets.instance.fonts.defaultBig.draw(batch, "" + worldController.score, x + 75, y + 37);
 	}
 
 	/**
 	 * Shows bunny heads depicting our total lives left
+	 * 
 	 * @param batch
 	 */
 	private void renderGuiExtraLive(SpriteBatch batch)
@@ -117,13 +126,37 @@ public class WorldRenderer implements Disposable
 		{
 			if (worldController.lives <= i)
 				batch.setColor(0.5f, 0.5f, 0.5f, 0.5f);
-			batch.draw(Assets.instance.bunny.sword, x + i * 50, y, 50, 50, 120, 100, 0.35f, -0.35f, 0);
+			batch.draw(Assets.instance.bunny.head, x + i * 50, y, 50, 50, 120, 100, 0.35f, -0.35f, 0);
 			batch.setColor(1, 1, 1, 1);
+		}
+	}
+
+	private void renderGuiFeatherPowerup(SpriteBatch batch)
+	{
+		float x = -15;
+		float y = 30;
+		float timeLeftFeatherPowerup = worldController.level.bunnyHead.timeLeftFeatherPowerup;
+		if (timeLeftFeatherPowerup > 0)
+		{
+			// Start icon fade in/out if the left power-up time
+			// is less than 4 seconds. The fade interval is set
+			// to 5 changes per second.
+			if (timeLeftFeatherPowerup < 4)
+			{
+				if (((int) (timeLeftFeatherPowerup * 5) % 2) != 0)
+				{
+					batch.setColor(1, 1, 1, 0.5f);
+				}
+			}
+			batch.draw(Assets.instance.feather.feather, x, y, 50, 50, 100, 100, 0.35f, -0.35f, 0);
+			batch.setColor(1, 1, 1, 1);
+			Assets.instance.fonts.defaultSmall.draw(batch, "" + (int) timeLeftFeatherPowerup, x + 60, y + 57);
 		}
 	}
 
 	/**
 	 * Keeps track of our FPS
+	 * 
 	 * @param batch
 	 */
 	private void renderGuiFpsCounter(SpriteBatch batch)
@@ -148,6 +181,19 @@ public class WorldRenderer implements Disposable
 
 		fpsFont.draw(batch, "FPS: " + fps, x, y);
 		fpsFont.setColor(1, 1, 1, 1); // white
+	}
+
+	private void renderGuiGameOverMessage(SpriteBatch batch)
+	{
+		float x = cameraGUI.viewportWidth / 2;
+		float y = cameraGUI.viewportHeight / 2;
+		if (worldController.isGameOver())
+		{
+			BitmapFont fontGameOver = Assets.instance.fonts.defaultBig;
+			fontGameOver.setColor(1, 0.75f, 0.25f, 1);
+			fontGameOver.draw(batch, "GAME OVER", x, y, 0, Align.center, false);
+			fontGameOver.setColor(1, 1, 1, 1);
+		}
 	}
 
 	/**
