@@ -22,6 +22,9 @@ public class BunnyHead extends AbstractGameObject {
 		GROUNDED, FALLING, JUMP_RISING, JUMP_FALLING
 	}
 
+	/**
+	 * Variables used to define the bunny head during runtime.
+	 */
 	private TextureRegion regHead;
 
 	public VIEW_DIRECTION viewDirection;
@@ -36,6 +39,16 @@ public class BunnyHead extends AbstractGameObject {
 		init();
 	}
 
+	/**
+	 * Initializes the BunnyHead object and sets the origin.
+	 * Also sets terminalVelocity of the object, friction,
+	 * and acceleration. All of which will change when we switch
+	 * to Box2D.
+	 * 
+	 * Immediately sets jump state to falling, that the bunny
+	 * will be looking to the right, and that we have no
+	 * feather powerup.
+	 */
 	public void init () {
 		dimension.set(1, 1);
 
@@ -64,6 +77,10 @@ public class BunnyHead extends AbstractGameObject {
 		timeLeftFeatherPowerup = 0;
 	}
 
+	/**
+	 * Updates the screen as you move, the feather timer counts down,
+	 * etc.
+	 */
 	@Override
 	public void update (float deltaTime) {
 		super.update(deltaTime);
@@ -80,6 +97,10 @@ public class BunnyHead extends AbstractGameObject {
 		}
 	}
 
+	/**
+	 * Controls the jumping behavior for the game and redraws
+	 * while active. Also controls falling.
+	 */
 	@Override
 	protected void updateMotionY (float deltaTime) {
 		switch (jumpState) {
@@ -111,6 +132,11 @@ public class BunnyHead extends AbstractGameObject {
 		}
 	}
 
+	/**
+	 * Changes color of the bunny to yellow when the feather
+	 * is collected. Otherwise just draws the head from the region
+	 * of the atlas.
+	 */
 	@Override
 	public void render (SpriteBatch batch) {
 		TextureRegion reg = null;
@@ -130,6 +156,10 @@ public class BunnyHead extends AbstractGameObject {
 		batch.setColor(1, 1, 1, 1);
 	}
 
+	/**
+	 * Sets the duration of the feather powerup.
+	 * @param pickedUp
+	 */
 	public void setFeatherPowerup (boolean pickedUp) {
 		hasFeatherPowerup = pickedUp;
 		if (pickedUp) {
@@ -137,10 +167,26 @@ public class BunnyHead extends AbstractGameObject {
 		}
 	}
 
+	/**
+	 * Returns true if the feather is picked up. Otherwise
+	 * hasFeatherPowerUp is false and also returns to false
+	 * after the time runs out on the power up.
+	 * @return
+	 */
 	public boolean hasFeatherPowerup () {
 		return hasFeatherPowerup && timeLeftFeatherPowerup > 0;
 	}
 
+	/**
+	 * Controls the jumping command. jumpKeyPressed means
+	 * if the spacebar is pressed, react accordingly.
+	 * 
+	 * On ground, jump. If in the air and space is let go, fall.
+	 * 
+	 * If falling and has feather, fall slower. Otherwise
+	 * just fall.
+	 * @param jumpKeyPressed
+	 */
 	public void setJumping (boolean jumpKeyPressed) {
 		switch (jumpState) {
 		case GROUNDED: // Character is standing on a platform
