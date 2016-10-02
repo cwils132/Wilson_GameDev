@@ -27,7 +27,7 @@ public class DesktopLauncher
 		{
 			Settings settings = new Settings();
 			settings.maxWidth = 1024;
-			settings.maxHeight = 1024;
+			settings.maxHeight = 2048;
 			settings.duplicatePadding = false;
 			settings.debug = drawDebugOutline;
 			/**
@@ -35,7 +35,7 @@ public class DesktopLauncher
 			 * destination folder, and description file they must be written in
 			 * that order.
 			 */
-			TexturePacker.process(settings, "assets-raw/images", "../core/assets/images", "thelibrary.pack");
+			TexturePacker.process(settings, "assets-raw/images", "../core/assets/images", "canyonbunny.pack");
 		}
 
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
