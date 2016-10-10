@@ -5,8 +5,8 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 import com.wilson.gdx.game.objects.AbstractGameObject;
-import com.wilson.gdx.game.objects.BackGround;
 import com.wilson.gdx.game.objects.Clouds;
+import com.wilson.gdx.game.objects.BackGround;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.game.objects.WaterOverlay;
 
@@ -37,7 +37,8 @@ public class Level
 	 * @author Chris
 	 *
 	 */
-	public enum BLOCK_TYPE {
+	public enum BLOCK_TYPE
+	{
 		EMPTY(0, 0, 0), // black
 		ROCK(0, 255, 0), // green
 		PLAYER_SPAWNPOINT(255, 255, 255), // white
@@ -46,15 +47,18 @@ public class Level
 
 		private int color;
 
-		private BLOCK_TYPE (int r, int g, int b) {
+		private BLOCK_TYPE(int r, int g, int b)
+		{
 			color = r << 24 | g << 16 | b << 8 | 0xff;
 		}
 
-		public boolean sameColor (int color) {
+		public boolean sameColor(int color)
+		{
 			return this.color == color;
 		}
 
-		public int getColor () {
+		public int getColor()
+		{
 			return color;
 		}
 	}
@@ -64,7 +68,7 @@ public class Level
 
 	// decoration
 	public Clouds clouds;
-	public BackGround backGround;
+	public BackGround mountains;
 	public WaterOverlay waterOverlay;
 
 	public Level(String filename)
@@ -182,8 +186,8 @@ public class Level
 		// decoration
 		clouds = new Clouds(pixmap.getWidth());
 		clouds.position.set(0, 2);
-		backGround = new BackGround(pixmap.getWidth());
-		backGround.position.set(-1, -1);
+		mountains = new BackGround(pixmap.getWidth());
+		mountains.position.set(-1, -1);
 		waterOverlay = new WaterOverlay(pixmap.getWidth());
 		waterOverlay.position.set(0, -3.75f);
 
@@ -195,7 +199,7 @@ public class Level
 	public void render(SpriteBatch batch)
 	{
 		// Draw Mountains
-		backGround.render(batch);
+		mountains.render(batch);
 		// Draw Rocks
 		for (Rock rock : rocks)
 			rock.render(batch);

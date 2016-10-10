@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.Array;
 import com.wilson.gdx.util.CameraHelper;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.util.Constants;
+import com.badlogic.gdx.Game;
+import com.wilson.gdx.screens.MenuScreen;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.wilson.gdx.game.objects.BunnyHead;
@@ -36,8 +38,11 @@ public class WorldController extends InputAdapter
 
 	private float timeLeftGameOverDelay;
 
-	public WorldController()
+	private Game game;
+
+	public WorldController(Game game)
 	{
+		this.game = game;
 		init();
 	}
 
@@ -57,6 +62,16 @@ public class WorldController extends InputAdapter
 		cameraHelper.setTarget(level.bunnyHead);
 	}
 
+	/**
+	 * Calls to CameraHelper to update the game as things change with the
+	 * images. Also tells the program to cause the image rotations, and debugs
+	 * as necessary.
+	 * 
+	 * In this case, the debug checks to make sure the program is running
+	 * through the desktop.
+	 * 
+	 * @param deltaTime
+	 */
 	public void update(float deltaTime)
 	{
 		handleDebugInput(deltaTime);
@@ -64,7 +79,7 @@ public class WorldController extends InputAdapter
 		{
 			timeLeftGameOverDelay -= deltaTime;
 			if (timeLeftGameOverDelay < 0)
-				init();
+				backToMenu();
 		} else
 		{
 			handleInputGame(deltaTime);
@@ -180,6 +195,17 @@ public class WorldController extends InputAdapter
 		Gdx.app.log(TAG, "Feather collected");
 	}
 
+	/**
+	 * If the program is running in Desktop mode, keyboard use is enabled. The
+	 * keyboard is used by called InputAdapter. By using the Keys() method
+	 * LibGDX is able to tell what keyboard keys are used at each press.
+	 * 
+	 * When a key is pressed, the if statement checks it and performs the
+	 * corresponding action. This will currently move objects around the screen
+	 * or move the camera itself.
+	 * 
+	 * @param deltaTime
+	 */
 	private void handleDebugInput(float deltaTime)
 	{
 		if (Gdx.app.getType() != ApplicationType.Desktop)
@@ -217,6 +243,20 @@ public class WorldController extends InputAdapter
 			cameraHelper.setZoom(1);
 	}
 
+	/**
+	 * This is set up to handle player inputs on the bunnyHead. When left or
+	 * right is pressed it gets the terminalVelocity value of the BunnyHead
+	 * object and executes movement.
+	 * 
+	 * (Terminal Velocity values actually stored in AbstractGameObject)
+	 * 
+	 * Jump is different however. The calculations are stored in BunnyHead since
+	 * we don't need anything else to be able to jump when we press space. It
+	 * calls to a function setJumping() and it executes depending on the
+	 * situation.
+	 * 
+	 * @param deltaTime
+	 */
 	private void handleInputGame(float deltaTime)
 	{
 		if (cameraHelper.hasTarget(level.bunnyHead))
@@ -252,6 +292,10 @@ public class WorldController extends InputAdapter
 		cameraHelper.setPosition(x, y);
 	}
 
+	/**
+	 * Further key input commands. Reset, Select next sprite, Toggle Camera
+	 * follow
+	 */
 	@Override
 	public boolean keyUp(int keycode)
 	{
@@ -267,6 +311,21 @@ public class WorldController extends InputAdapter
 			cameraHelper.setTarget(cameraHelper.hasTarget() ? null : level.bunnyHead);
 			Gdx.app.debug(TAG, "Camera follow enabled: " + cameraHelper.hasTarget());
 		}
+		// Back to Menu
+		else if (keycode == Keys.ESCAPE || keycode == Keys.BACK)
+		{
+			backToMenu();
+		}
 		return false;
+	}
+
+	/**
+	 * Allows us to switch back to menu whenever the player loses
+	 * or hits escape.
+	 */
+	private void backToMenu()
+	{
+		// switch to menu screen
+		game.setScreen(new MenuScreen(game));
 	}
 }
