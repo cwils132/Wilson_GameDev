@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
 import com.wilson.gdx.util.Constants;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.wilson.gdx.util.GamePreferences;
 
 public class WorldRenderer implements Disposable
 {
@@ -94,6 +95,10 @@ public class WorldRenderer implements Disposable
 		renderGuiExtraLive(batch);
 		// draw FPS text (anchored to bottom right edge)
 		renderGuiFpsCounter(batch);
+		if (GamePreferences.instance.showFpsCounter)
+		{
+			renderGuiFpsCounter(batch);
+		}
 		// draw game over text
 		renderGuiGameOverMessage(batch);
 

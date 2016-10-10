@@ -37,7 +37,8 @@ public class Level
 	 * @author Chris
 	 *
 	 */
-	public enum BLOCK_TYPE {
+	public enum BLOCK_TYPE
+	{
 		EMPTY(0, 0, 0), // black
 		ROCK(0, 255, 0), // green
 		PLAYER_SPAWNPOINT(255, 255, 255), // white
@@ -46,15 +47,18 @@ public class Level
 
 		private int color;
 
-		private BLOCK_TYPE (int r, int g, int b) {
+		private BLOCK_TYPE(int r, int g, int b)
+		{
 			color = r << 24 | g << 16 | b << 8 | 0xff;
 		}
 
-		public boolean sameColor (int color) {
+		public boolean sameColor(int color)
+		{
 			return this.color == color;
 		}
 
-		public int getColor () {
+		public int getColor()
+		{
 			return color;
 		}
 	}

@@ -9,9 +9,8 @@ public class Mountains extends AbstractGameObject
 {
 
 	/**
-	 * This class works similarly to rock. Mountains have
-	 * two parts with seamless blending to allow
-	 * for an infinite loop in our background.
+	 * This class works similarly to rock. Mountains have two parts with
+	 * seamless blending to allow for an infinite loop in our background.
 	 */
 	private TextureRegion regMountainLeft;
 	private TextureRegion regMountainRight;
@@ -50,9 +49,9 @@ public class Mountains extends AbstractGameObject
 		for (int i = 0; i < mountainLength; i++)
 		{
 			/**
-			 * Similar to setting the position of the rock. The difference is we don't actually
-			 * want to flip either image of the mountain as it is already
-			 * oriented the way it needs to be. Therefore we define its
+			 * Similar to setting the position of the rock. The difference is we
+			 * don't actually want to flip either image of the mountain as it is
+			 * already oriented the way it needs to be. Therefore we define its
 			 * scale, location, dimension, and rotation and let it render.
 			 */
 			// mountain left

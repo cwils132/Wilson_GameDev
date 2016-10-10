@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.Array;
 import com.wilson.gdx.util.CameraHelper;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.util.Constants;
+import com.badlogic.gdx.Game;
+import com.wilson.gdx.screens.MenuScreen;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.wilson.gdx.game.objects.BunnyHead;
@@ -36,8 +38,11 @@ public class WorldController extends InputAdapter
 
 	private float timeLeftGameOverDelay;
 
-	public WorldController()
+	private Game game;
+
+	public WorldController(Game game)
 	{
+		this.game = game;
 		init();
 	}
 
@@ -74,7 +79,7 @@ public class WorldController extends InputAdapter
 		{
 			timeLeftGameOverDelay -= deltaTime;
 			if (timeLeftGameOverDelay < 0)
-				init();
+				backToMenu();
 		} else
 		{
 			handleInputGame(deltaTime);
@@ -239,16 +244,17 @@ public class WorldController extends InputAdapter
 	}
 
 	/**
-	 * This is set up to handle player inputs on the bunnyHead.
-	 * When left or right is pressed it gets the terminalVelocity
-	 * value of the BunnyHead object and executes movement.
+	 * This is set up to handle player inputs on the bunnyHead. When left or
+	 * right is pressed it gets the terminalVelocity value of the BunnyHead
+	 * object and executes movement.
 	 * 
 	 * (Terminal Velocity values actually stored in AbstractGameObject)
 	 * 
-	 * Jump is different however. The calculations are stored in BunnyHead
-	 * since we don't need anything else to be able to jump when we press
-	 * space. It calls to a function setJumping() and it executes
-	 * depending on the situation.
+	 * Jump is different however. The calculations are stored in BunnyHead since
+	 * we don't need anything else to be able to jump when we press space. It
+	 * calls to a function setJumping() and it executes depending on the
+	 * situation.
+	 * 
 	 * @param deltaTime
 	 */
 	private void handleInputGame(float deltaTime)
@@ -287,7 +293,8 @@ public class WorldController extends InputAdapter
 	}
 
 	/**
-	 * Further key input commands. Reset, Select next sprite, Toggle Camera follow
+	 * Further key input commands. Reset, Select next sprite, Toggle Camera
+	 * follow
 	 */
 	@Override
 	public boolean keyUp(int keycode)
@@ -304,6 +311,21 @@ public class WorldController extends InputAdapter
 			cameraHelper.setTarget(cameraHelper.hasTarget() ? null : level.bunnyHead);
 			Gdx.app.debug(TAG, "Camera follow enabled: " + cameraHelper.hasTarget());
 		}
+		// Back to Menu
+		else if (keycode == Keys.ESCAPE || keycode == Keys.BACK)
+		{
+			backToMenu();
+		}
 		return false;
+	}
+
+	/**
+	 * Allows us to switch back to menu whenever the player loses
+	 * or hits escape.
+	 */
+	private void backToMenu()
+	{
+		// switch to menu screen
+		game.setScreen(new MenuScreen(game));
 	}
 }
