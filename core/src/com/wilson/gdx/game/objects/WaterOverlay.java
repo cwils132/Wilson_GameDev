@@ -8,8 +8,9 @@ public class WaterOverlay extends AbstractGameObject
 {
 
 	/**
-	 * Water sits in front of all other rendered images and does not move with
-	 * the camera. Tiles across infinitely throughout the level.
+	 * Water sits in front of all other rendered images and does
+	 * not move with the camera. Tiles across infinitely
+	 * throughout the level.
 	 */
 	private TextureRegion regWaterOverlay;
 	private float length;

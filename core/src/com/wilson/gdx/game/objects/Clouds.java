@@ -52,8 +52,8 @@ public class Clouds extends AbstractGameObject
 	}
 
 	/**
-	 * This method is to ensure there is a cloud every 5 meters of the game.
-	 * To actually spawn the cloud however, it calls to the spawnCloud() method.
+	 * This method is to ensure there is a cloud every 5 meters of the game. To
+	 * actually spawn the cloud however, it calls to the spawnCloud() method.
 	 */
 	private void init()
 	{
@@ -76,9 +76,9 @@ public class Clouds extends AbstractGameObject
 	}
 
 	/**
-	 * This adds the cloud to the scene and randomly shifts
-	 * it up or down. The new cloud is then saved to the list
-	 * and returned to the calling method.
+	 * This adds the cloud to the scene and randomly shifts it up or down. The
+	 * new cloud is then saved to the list and returned to the calling method.
+	 * 
 	 * @return
 	 */
 	private Cloud spawnCloud()
@@ -91,16 +91,41 @@ public class Clouds extends AbstractGameObject
 		Vector2 pos = new Vector2();
 		pos.x = length + 10; // position after end of level
 		pos.y += 1.75; // base position
-		pos.y += MathUtils.random(0.0f, 0.2f) * (MathUtils.randomBoolean() ? 1 : -1); // random
-		                                                                              // additional
-		                                                                              // position
+		// random additional position
+		pos.y += MathUtils.random(0.0f, 0.2f) * (MathUtils.randomBoolean() ? 1 : -1);
 		cloud.position.set(pos);
+		/**
+		 * This section creates different clouds that utilize different movement.
+		 * Iterates through all clouds and if the cloud is moved off screen,
+		 * it is removed and a new one is added to the right of the level.
+		 */
+		// speed
+		Vector2 speed = new Vector2();
+		speed.x += 0.5f; // base speed
+		// random additional speed
+		speed.x += MathUtils.random(0.0f, 0.75f);
+		cloud.terminalVelocity.set(speed);
+		speed.x *= -1; // move left
+		cloud.velocity.set(speed);
 		return cloud;
+	}
+	
+	@Override
+	public void update (float deltaTime) {
+		for (int i = clouds.size - 1; i >= 0; i--) {
+			Cloud cloud = clouds.get(i);
+			cloud.update(deltaTime);
+			if (cloud.position.x < -10) {
+				// cloud moved outside of world.
+				// destroy and spawn new cloud at end of level.
+				clouds.removeIndex(i);
+				clouds.add(spawnCloud());
+			}
+		}
 	}
 
 	@Override
-	public void render(SpriteBatch batch)
-	{
+	public void render (SpriteBatch batch) {
 		for (Cloud cloud : clouds)
 			cloud.render(batch);
 	}

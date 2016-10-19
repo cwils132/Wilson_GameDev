@@ -5,8 +5,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.wilson.gdx.game.Assets;
 import com.wilson.gdx.util.Constants;
-import com.wilson.gdx.util.CharacterSkin;
 import com.wilson.gdx.util.GamePreferences;
+import com.wilson.gdx.util.CharacterSkin;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 
 public class BunnyHead extends AbstractGameObject
 {
@@ -16,6 +18,8 @@ public class BunnyHead extends AbstractGameObject
 	private final float JUMP_TIME_MAX = 0.3f;
 	private final float JUMP_TIME_MIN = 0.1f;
 	private final float JUMP_TIME_OFFSET_FLYING = JUMP_TIME_MAX - 0.018f;
+
+	public ParticleEffect dustParticles = new ParticleEffect();
 
 	public enum VIEW_DIRECTION
 	{
@@ -52,6 +56,9 @@ public class BunnyHead extends AbstractGameObject
 	 * 
 	 * Immediately sets jump state to falling, that the bunny will be looking to
 	 * the right, and that we have no feather powerup.
+	 * 
+	 * Uses dust particles file to generate dust as the bunny moves around
+	 * the screen on the ground.
 	 */
 	public void init()
 	{
@@ -80,29 +87,29 @@ public class BunnyHead extends AbstractGameObject
 		// Power-ups
 		hasFeatherPowerup = false;
 		timeLeftFeatherPowerup = 0;
+
+		// Particles
+		dustParticles.load(Gdx.files.internal("../core/assets/particles/dust.pfx"), Gdx.files.internal("../core/assets/particles"));
 	}
 
 	/**
 	 * Updates the screen as you move, the feather timer counts down, etc.
 	 */
 	@Override
-	public void update(float deltaTime)
-	{
+	public void update (float deltaTime) {
 		super.update(deltaTime);
-		if (velocity.x != 0)
-		{
+		if (velocity.x != 0) {
 			viewDirection = velocity.x < 0 ? VIEW_DIRECTION.LEFT : VIEW_DIRECTION.RIGHT;
 		}
-		if (timeLeftFeatherPowerup > 0)
-		{
+		if (timeLeftFeatherPowerup > 0) {
 			timeLeftFeatherPowerup -= deltaTime;
-			if (timeLeftFeatherPowerup < 0)
-			{
+			if (timeLeftFeatherPowerup < 0) {
 				// disable power-up
 				timeLeftFeatherPowerup = 0;
 				setFeatherPowerup(false);
 			}
 		}
+		dustParticles.update(deltaTime);
 	}
 
 	/**
@@ -141,6 +148,7 @@ public class BunnyHead extends AbstractGameObject
 		}
 		if (jumpState != JUMP_STATE.GROUNDED)
 		{
+			dustParticles.allowCompletion();
 			super.updateMotionY(deltaTime);
 		}
 	}
@@ -150,24 +158,25 @@ public class BunnyHead extends AbstractGameObject
 	 * Otherwise just draws the head from the region of the atlas.
 	 */
 	@Override
-	public void render(SpriteBatch batch)
-	{
+	public void render (SpriteBatch batch) {
 		TextureRegion reg = null;
+
+		// Draw Particles
+		dustParticles.draw(batch);
 
 		// Apply Skin Color
 		batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
 
 		// Set special color when game object has a feather power-up
-		if (hasFeatherPowerup)
-		{
+		if (hasFeatherPowerup) {
 			batch.setColor(1.0f, 0.8f, 0.0f, 1.0f);
 		}
 
 		// Draw image
 		reg = regHead;
-		batch.draw(reg.getTexture(), position.x, position.y, origin.x, origin.y, dimension.x, dimension.y, scale.x,
-		        scale.y, rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(), reg.getRegionHeight(),
-		        viewDirection == VIEW_DIRECTION.LEFT, false);
+		batch.draw(reg.getTexture(), position.x, position.y, origin.x, origin.y, dimension.x, dimension.y, scale.x, scale.y,
+			rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(), reg.getRegionHeight(),
+			viewDirection == VIEW_DIRECTION.LEFT, false);
 
 		// Reset color to white
 		batch.setColor(1, 1, 1, 1);

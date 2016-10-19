@@ -29,6 +29,8 @@ public class WorldController extends InputAdapter
 	public Level level;
 	public int lives;
 	public int score;
+	public float livesVisual; // decreases when lives decrease
+	public float scoreVisual;
 
 	public CameraHelper cameraHelper;
 
@@ -51,6 +53,7 @@ public class WorldController extends InputAdapter
 		Gdx.input.setInputProcessor(this);
 		cameraHelper = new CameraHelper();
 		lives = Constants.LIVES_START;
+		livesVisual = lives;
 		timeLeftGameOverDelay = 0;
 		initLevel();
 	}
@@ -58,6 +61,7 @@ public class WorldController extends InputAdapter
 	private void initLevel()
 	{
 		score = 0;
+		scoreVisual = score;
 		level = new Level(Constants.LEVEL_01);
 		cameraHelper.setTarget(level.bunnyHead);
 	}
@@ -95,6 +99,11 @@ public class WorldController extends InputAdapter
 			else
 				initLevel();
 		}
+		level.mountains.updateScrollPosition(cameraHelper.getPosition());
+		if (livesVisual > lives)
+			livesVisual = Math.max(lives, livesVisual - 1 * deltaTime);
+		if (scoreVisual < score)
+			scoreVisual = Math.min(score, scoreVisual + 250 * deltaTime);
 	}
 
 	public boolean isGameOver()
@@ -320,8 +329,8 @@ public class WorldController extends InputAdapter
 	}
 
 	/**
-	 * Allows us to switch back to menu whenever the player loses
-	 * or hits escape.
+	 * Allows us to switch back to menu whenever the player loses or hits
+	 * escape.
 	 */
 	private void backToMenu()
 	{
