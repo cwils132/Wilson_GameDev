@@ -20,7 +20,7 @@ public class Feather extends AbstractGameObject
 	{
 		dimension.set(0.5f, 0.5f);
 
-		regFeather = Assets.instance.feather.feather;
+		regFeather = Assets.instance.feather.ruby;
 
 		// Set bounding box for collision detection
 		bounds.set(0, 0, dimension.x, dimension.y);

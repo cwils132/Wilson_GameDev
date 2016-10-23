@@ -39,7 +39,7 @@ public class Clouds extends AbstractGameObject
 		public void render(SpriteBatch batch)
 		{
 			TextureRegion reg = regCloud;
-			batch.draw(reg.getTexture(), position.x + origin.x, position.y + origin.y, origin.x, origin.y, dimension.x,
+			batch.draw(reg.getTexture(), position.x + origin.x, position.y-2 + origin.y, origin.x, origin.y, dimension.x,
 			        dimension.y, scale.x, scale.y, rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(),
 			        reg.getRegionHeight(), false, false);
 		}
@@ -60,9 +60,9 @@ public class Clouds extends AbstractGameObject
 		dimension.set(3.0f, 1.5f);
 
 		regClouds = new Array<TextureRegion>();
-		regClouds.add(Assets.instance.levelDecoration.cloud01);
-		regClouds.add(Assets.instance.levelDecoration.cloud02);
-		regClouds.add(Assets.instance.levelDecoration.cloud03);
+		regClouds.add(Assets.instance.levelDecoration.dust01);
+		regClouds.add(Assets.instance.levelDecoration.dust02);
+		regClouds.add(Assets.instance.levelDecoration.dust03);
 
 		int distFac = 5;
 		int numClouds = (int) (length / distFac);

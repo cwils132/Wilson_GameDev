@@ -64,7 +64,7 @@ public class BunnyHead extends AbstractGameObject
 	{
 		dimension.set(1, 1);
 
-		regHead = Assets.instance.bunny.head;
+		regHead = Assets.instance.character.head;
 
 		// Center image on game object
 		origin.set(dimension.x / 2, dimension.y / 2);
@@ -123,6 +123,11 @@ public class BunnyHead extends AbstractGameObject
 		{
 		case GROUNDED:
 			jumpState = JUMP_STATE.FALLING;
+			if (velocity.x != 0)
+			{
+				dustParticles.setPosition(position.x + dimension.x / 2,  position.y);
+				dustParticles.start();
+			}
 			break;
 		case JUMP_RISING:
 			// Keep track of jump time
