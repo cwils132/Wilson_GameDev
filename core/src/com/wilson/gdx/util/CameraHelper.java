@@ -12,6 +12,7 @@ public class CameraHelper
 
 	private final float MAX_ZOOM_IN = 0.25f;
 	private final float MAX_ZOOM_OUT = 10.0f;
+	private final float FOLLOW_SPEED = 4.0f;
 
 	private Vector2 position;
 	private float zoom;
@@ -30,16 +31,20 @@ public class CameraHelper
 	 * 
 	 * @param deltaTime
 	 */
-	public void update(float deltaTime)
-	{
-		if (!hasTarget())
-			return;
+	public void update (float deltaTime) {
+		if (!hasTarget()) return;
 
-		position.x = target.position.x + target.origin.x;
-		position.y = target.position.y + target.origin.y;
+		/**
+		 * lerp() finds unknown values between two points. In this case, we can
+		 * also use it to smooth movement. This allows us to make the rocks bob up
+		 * and down in the water.
+		 * 
+		 * Because this is performed in update(), the movements will be very small.
+		 */
+		position.lerp(target.position, FOLLOW_SPEED * deltaTime);
 		
 		// Prevent camera from moving down too far
-		position.y = Math.max(-1f,  position.y);
+		position.y = Math.max(-1f, position.y);
 	}
 
 	public void setPosition(float x, float y)
