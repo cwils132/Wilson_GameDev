@@ -1,103 +1,110 @@
 
-thelibrary.pack.png
+theLibrary.pack.png
 size: 1024,1024
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
-bunny_head
+background2
   rotate: false
-  xy: 2, 44
-  size: 122, 82
-  orig: 122, 82
+  xy: 2, 716
+  size: 1000, 300
+  orig: 1000, 300
   offset: 0, 0
   index: -1
-cloud1
+background3
   rotate: false
-  xy: 155, 356
-  size: 192, 128
-  orig: 192, 128
+  xy: 2, 489
+  size: 1000, 225
+  orig: 1000, 225
   offset: 0, 0
   index: -1
-cloud2
+book
   rotate: false
-  xy: 155, 226
-  size: 192, 128
-  orig: 192, 128
-  offset: 0, 0
-  index: -1
-cloud3
-  rotate: false
-  xy: 349, 356
-  size: 192, 128
-  orig: 192, 128
-  offset: 0, 0
-  index: -1
-item_feather
-  rotate: false
-  xy: 2, 2
-  size: 46, 40
-  orig: 46, 40
-  offset: 0, 0
-  index: -1
-item_gold_coin
-  rotate: false
-  xy: 543, 428
+  xy: 320, 74
   size: 56, 56
   orig: 56, 56
   offset: 0, 0
   index: -1
-mountain_left
+bunny_head
   rotate: false
-  xy: 2, 713
-  size: 1000, 225
-  orig: 1000, 225
+  xy: 196, 48
+  size: 122, 82
+  orig: 122, 82
   offset: 0, 0
   index: -1
-mountain_right
+char
   rotate: false
-  xy: 2, 486
-  size: 1000, 225
-  orig: 1000, 225
+  xy: 390, 178
+  size: 122, 82
+  orig: 122, 82
   offset: 0, 0
   index: -1
-rock_edge
+diamond
   rotate: false
-  xy: 90, 128
-  size: 63, 356
-  orig: 63, 356
+  xy: 196, 16
+  size: 30, 30
+  orig: 30, 30
   offset: 0, 0
   index: -1
-rock_middle
+dust01
   rotate: false
-  xy: 2, 128
-  size: 86, 356
-  orig: 86, 356
+  xy: 2, 132
+  size: 192, 128
+  orig: 192, 128
   offset: 0, 0
   index: -1
-saphire
+dust02
   rotate: false
-  xy: 126, 103
-  size: 23, 23
-  orig: 23, 23
+  xy: 2, 2
+  size: 192, 128
+  orig: 192, 128
   offset: 0, 0
   index: -1
-water_overlay
+dust03
   rotate: false
-  xy: 349, 194
+  xy: 196, 132
+  size: 192, 128
+  orig: 192, 128
+  offset: 0, 0
+  index: -1
+dust_overlay
+  rotate: false
+  xy: 514, 100
   size: 32, 160
   orig: 32, 160
   offset: 0, 0
   index: -1
+mist3
+  rotate: false
+  xy: 2, 262
+  size: 1000, 225
+  orig: 1000, 225
+  offset: 0, 0
+  index: -1
+ruby
+  rotate: false
+  xy: 390, 153
+  size: 23, 23
+  orig: 23, 23
+  offset: 0, 0
+  index: -1
 
-thelibrary.pack2.png
-size: 256,1024
+theLibrary.pack2.png
+size: 256,512
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
-sword
+floor_edge
+  rotate: false
+  xy: 90, 2
+  size: 63, 356
+  orig: 63, 356
+  offset: 0, 0
+  index: -1
+floor_middle
   rotate: false
   xy: 2, 2
-  size: 223, 689
-  orig: 223, 689
+  size: 86, 356
+  orig: 86, 356
   offset: 0, 0
   index: -1
