@@ -193,7 +193,7 @@ public class WorldController extends InputAdapter
 	{
 		goldcoin.collected = true;
 		score += goldcoin.getScore();
-		Gdx.app.log(TAG, "Gold coin collected");
+		Gdx.app.log(TAG, "Book collected");
 	}
 
 	private void onCollisionBunnyWithFeather(Feather feather)
@@ -201,7 +201,7 @@ public class WorldController extends InputAdapter
 		feather.collected = true;
 		score += feather.getScore();
 		level.bunnyHead.setFeatherPowerup(true);
-		Gdx.app.log(TAG, "Feather collected");
+		Gdx.app.log(TAG, "Ruby collected");
 	}
 
 	/**
