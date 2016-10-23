@@ -22,9 +22,9 @@ public class Assets implements Disposable, AssetErrorListener
 	private AssetManager assetManager;
 
 	public AssetFonts fonts;
-	public AssetBunny bunny;
+	public AssetBunny character;
 	public AssetRock rock;
-	public AssetGoldCoin goldCoin;
+	public AssetRedBook redBook;
 	public AssetFeather feather;
 	public AssetLevelDecoration levelDecoration;
 
@@ -69,13 +69,20 @@ public class Assets implements Disposable, AssetErrorListener
 		}
 	}
 
+	/**
+	 * These inner classes define the texture regions of the Texture Atlas so
+	 * the game can find and load them at initialization.
+	 * 
+	 * @author Chris
+	 *
+	 */
 	public class AssetBunny
 	{
 		public final AtlasRegion head;
 
 		public AssetBunny(TextureAtlas atlas)
 		{
-			head = atlas.findRegion("bunny_head");
+			head = atlas.findRegion("char");
 		}
 	}
 
@@ -86,53 +93,63 @@ public class Assets implements Disposable, AssetErrorListener
 
 		public AssetRock(TextureAtlas atlas)
 		{
-			edge = atlas.findRegion("rock_edge");
-			middle = atlas.findRegion("rock_middle");
+			edge = atlas.findRegion("floor_edge");
+			middle = atlas.findRegion("floor_middle");
 		}
 	}
 
-	public class AssetGoldCoin
+	public class AssetRedBook
 	{
-		public final AtlasRegion goldCoin;
+		public final AtlasRegion book;
 
-		public AssetGoldCoin(TextureAtlas atlas)
+		public AssetRedBook(TextureAtlas atlas)
 		{
-			goldCoin = atlas.findRegion("item_gold_coin");
+			book = atlas.findRegion("book");
 		}
 	}
 
 	public class AssetFeather
 	{
-		public final AtlasRegion feather;
+		public final AtlasRegion ruby;
 
 		public AssetFeather(TextureAtlas atlas)
 		{
-			feather = atlas.findRegion("item_feather");
+			ruby = atlas.findRegion("ruby");
 		}
 	}
 
 	public class AssetLevelDecoration
 	{
-		public final AtlasRegion cloud01;
-		public final AtlasRegion cloud02;
-		public final AtlasRegion cloud03;
-		public final AtlasRegion background3;
-		public final AtlasRegion background2;
-		public final AtlasRegion mist3;
-		public final AtlasRegion waterOverlay;
+		public final AtlasRegion dust01;
+		public final AtlasRegion dust02;
+		public final AtlasRegion dust03;
+		public final AtlasRegion backgroundLeft;
+		public final AtlasRegion backgroundRight;
+		public final AtlasRegion backgroundMiddle;
+		public final AtlasRegion dustOverlay;
 
 		public AssetLevelDecoration(TextureAtlas atlas)
 		{
-			cloud01 = atlas.findRegion("cloud01");
-			cloud02 = atlas.findRegion("cloud02");
-			cloud03 = atlas.findRegion("cloud03");
-			background3 = atlas.findRegion("background3");
-			background2 = atlas.findRegion("background2");
-			mist3 = atlas.findRegion("mist3");
-			waterOverlay = atlas.findRegion("water_overlay");
+			dust01 = atlas.findRegion("dust01");
+			dust02 = atlas.findRegion("dust02");
+			dust03 = atlas.findRegion("dust03");
+			backgroundLeft = atlas.findRegion("background3");
+			backgroundRight = atlas.findRegion("background3");
+			backgroundMiddle = atlas.findRegion("background2");
+			dustOverlay = atlas.findRegion("dust_overlay");
 		}
 	}
 
+	/**
+	 * Initializes the Asset Manager for the game. This takes all the regions of
+	 * the atlas and loads them in to the game.
+	 * 
+	 * Objects are broken up in to game objects and decorations. Game objects
+	 * are coins, feathers, fonts, and rocks. Decoration is primarily background
+	 * images.
+	 * 
+	 * @param assetManager
+	 */
 	public void init(AssetManager assetManager)
 	{
 		this.assetManager = assetManager;
@@ -159,9 +176,9 @@ public class Assets implements Disposable, AssetErrorListener
 
 		// create game resource objects
 		fonts = new AssetFonts();
-		bunny = new AssetBunny(atlas);
+		character = new AssetBunny(atlas);
 		rock = new AssetRock(atlas);
-		goldCoin = new AssetGoldCoin(atlas);
+		redBook = new AssetRedBook(atlas);
 		feather = new AssetFeather(atlas);
 		levelDecoration = new AssetLevelDecoration(atlas);
 	}

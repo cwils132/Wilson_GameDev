@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 import com.wilson.gdx.game.objects.AbstractGameObject;
 import com.wilson.gdx.game.objects.Clouds;
-import com.wilson.gdx.game.objects.BackGround;
+import com.wilson.gdx.game.objects.Mountains;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.game.objects.WaterOverlay;
 
@@ -68,7 +68,7 @@ public class Level
 
 	// decoration
 	public Clouds clouds;
-	public BackGround mountains;
+	public Mountains mountains;
 	public WaterOverlay waterOverlay;
 
 	public Level(String filename)
@@ -186,7 +186,7 @@ public class Level
 		// decoration
 		clouds = new Clouds(pixmap.getWidth());
 		clouds.position.set(0, 2);
-		mountains = new BackGround(pixmap.getWidth());
+		mountains = new Mountains(pixmap.getWidth());
 		mountains.position.set(-1, -1);
 		waterOverlay = new WaterOverlay(pixmap.getWidth());
 		waterOverlay.position.set(0, -3.75f);

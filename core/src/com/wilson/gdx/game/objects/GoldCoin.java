@@ -17,7 +17,7 @@ public class GoldCoin extends AbstractGameObject {
 	private void init () {
 		dimension.set(0.5f, 0.5f);
 
-		regGoldCoin = Assets.instance.goldCoin.goldCoin;
+		regGoldCoin = Assets.instance.redBook.book;
 
 		// Set bounding box for collision detection
 		bounds.set(0, 0, dimension.x, dimension.y);

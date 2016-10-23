@@ -29,9 +29,9 @@ public class BackGround extends AbstractGameObject
 	{
 		dimension.set(10, 2);
 
-		bookCaseBack = Assets.instance.levelDecoration.background3;
-		bookCaseMid = Assets.instance.levelDecoration.background2;
-		mistBack = Assets.instance.levelDecoration.mist3;
+//		bookCaseBack = Assets.instance.levelDecoration.background3;
+//		bookCaseMid = Assets.instance.levelDecoration.background2;
+//		mistBack = Assets.instance.levelDecoration.mist3;
 
 		// shift mountain and extend length
 		origin.x = -dimension.x * 2;
@@ -138,5 +138,4 @@ public class BackGround extends AbstractGameObject
 		// distant mountains
 		drawBookCaseMid(batch, 0.0f, 0.0f, 0.8f);
 	}
-
 }

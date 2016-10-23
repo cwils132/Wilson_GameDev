@@ -5,8 +5,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.wilson.gdx.game.Assets;
 import com.wilson.gdx.util.Constants;
+import com.wilson.gdx.util.GamePreferences;
+import com.wilson.gdx.util.CharacterSkin;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 
-public class BunnyHead extends AbstractGameObject {
+public class BunnyHead extends AbstractGameObject
+{
 
 	public static final String TAG = BunnyHead.class.getName();
 
@@ -14,11 +19,15 @@ public class BunnyHead extends AbstractGameObject {
 	private final float JUMP_TIME_MIN = 0.1f;
 	private final float JUMP_TIME_OFFSET_FLYING = JUMP_TIME_MAX - 0.018f;
 
-	public enum VIEW_DIRECTION {
+	public ParticleEffect dustParticles = new ParticleEffect();
+
+	public enum VIEW_DIRECTION
+	{
 		LEFT, RIGHT
 	}
 
-	public enum JUMP_STATE {
+	public enum JUMP_STATE
+	{
 		GROUNDED, FALLING, JUMP_RISING, JUMP_FALLING
 	}
 
@@ -31,28 +40,31 @@ public class BunnyHead extends AbstractGameObject {
 
 	public float timeJumping;
 	public JUMP_STATE jumpState;
-	
+
 	public boolean hasFeatherPowerup;
 	public float timeLeftFeatherPowerup;
 
-	public BunnyHead () {
+	public BunnyHead()
+	{
 		init();
 	}
 
 	/**
-	 * Initializes the BunnyHead object and sets the origin.
-	 * Also sets terminalVelocity of the object, friction,
-	 * and acceleration. All of which will change when we switch
-	 * to Box2D.
+	 * Initializes the BunnyHead object and sets the origin. Also sets
+	 * terminalVelocity of the object, friction, and acceleration. All of which
+	 * will change when we switch to Box2D.
 	 * 
-	 * Immediately sets jump state to falling, that the bunny
-	 * will be looking to the right, and that we have no
-	 * feather powerup.
+	 * Immediately sets jump state to falling, that the bunny will be looking to
+	 * the right, and that we have no feather powerup.
+	 * 
+	 * Uses dust particles file to generate dust as the bunny moves around
+	 * the screen on the ground.
 	 */
-	public void init () {
+	public void init()
+	{
 		dimension.set(1, 1);
 
-		regHead = Assets.instance.bunny.head;
+		regHead = Assets.instance.character.head;
 
 		// Center image on game object
 		origin.set(dimension.x / 2, dimension.y / 2);
@@ -75,11 +87,13 @@ public class BunnyHead extends AbstractGameObject {
 		// Power-ups
 		hasFeatherPowerup = false;
 		timeLeftFeatherPowerup = 0;
+
+		// Particles
+		dustParticles.load(Gdx.files.internal("../core/assets/particles/dust.pfx"), Gdx.files.internal("../core/assets/particles"));
 	}
 
 	/**
-	 * Updates the screen as you move, the feather timer counts down,
-	 * etc.
+	 * Updates the screen as you move, the feather timer counts down, etc.
 	 */
 	@Override
 	public void update (float deltaTime) {
@@ -95,23 +109,32 @@ public class BunnyHead extends AbstractGameObject {
 				setFeatherPowerup(false);
 			}
 		}
+		dustParticles.update(deltaTime);
 	}
 
 	/**
-	 * Controls the jumping behavior for the game and redraws
-	 * while active. Also controls falling.
+	 * Controls the jumping behavior for the game and redraws while active. Also
+	 * controls falling.
 	 */
 	@Override
-	protected void updateMotionY (float deltaTime) {
-		switch (jumpState) {
+	protected void updateMotionY(float deltaTime)
+	{
+		switch (jumpState)
+		{
 		case GROUNDED:
 			jumpState = JUMP_STATE.FALLING;
+			if (velocity.x != 0)
+			{
+				dustParticles.setPosition(position.x + dimension.x / 2,  position.y);
+				dustParticles.start();
+			}
 			break;
 		case JUMP_RISING:
 			// Keep track of jump time
 			timeJumping += deltaTime;
 			// Jump time left?
-			if (timeJumping <= JUMP_TIME_MAX) {
+			if (timeJumping <= JUMP_TIME_MAX)
+			{
 				// Still jumping
 				velocity.y = terminalVelocity.y;
 			}
@@ -122,24 +145,32 @@ public class BunnyHead extends AbstractGameObject {
 			// Add delta times to track jump time
 			timeJumping += deltaTime;
 			// Jump to minimal height if jump key was pressed too short
-			if (timeJumping > 0 && timeJumping <= JUMP_TIME_MIN) {
+			if (timeJumping > 0 && timeJumping <= JUMP_TIME_MIN)
+			{
 				// Still jumping
 				velocity.y = terminalVelocity.y;
 			}
 		}
-		if (jumpState != JUMP_STATE.GROUNDED) {
+		if (jumpState != JUMP_STATE.GROUNDED)
+		{
+			dustParticles.allowCompletion();
 			super.updateMotionY(deltaTime);
 		}
 	}
 
 	/**
-	 * Changes color of the bunny to yellow when the feather
-	 * is collected. Otherwise just draws the head from the region
-	 * of the atlas.
+	 * Changes color of the bunny to yellow when the feather is collected.
+	 * Otherwise just draws the head from the region of the atlas.
 	 */
 	@Override
 	public void render (SpriteBatch batch) {
 		TextureRegion reg = null;
+
+		// Draw Particles
+		dustParticles.draw(batch);
+
+		// Apply Skin Color
+		batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
 
 		// Set special color when game object has a feather power-up
 		if (hasFeatherPowerup) {
@@ -158,52 +189,61 @@ public class BunnyHead extends AbstractGameObject {
 
 	/**
 	 * Sets the duration of the feather powerup.
+	 * 
 	 * @param pickedUp
 	 */
-	public void setFeatherPowerup (boolean pickedUp) {
+	public void setFeatherPowerup(boolean pickedUp)
+	{
 		hasFeatherPowerup = pickedUp;
-		if (pickedUp) {
+		if (pickedUp)
+		{
 			timeLeftFeatherPowerup = Constants.ITEM_FEATHER_POWERUP_DURATION;
 		}
 	}
 
 	/**
-	 * Returns true if the feather is picked up. Otherwise
-	 * hasFeatherPowerUp is false and also returns to false
-	 * after the time runs out on the power up.
+	 * Returns true if the feather is picked up. Otherwise hasFeatherPowerUp is
+	 * false and also returns to false after the time runs out on the power up.
+	 * 
 	 * @return
 	 */
-	public boolean hasFeatherPowerup () {
+	public boolean hasFeatherPowerup()
+	{
 		return hasFeatherPowerup && timeLeftFeatherPowerup > 0;
 	}
 
 	/**
-	 * Controls the jumping command. jumpKeyPressed means
-	 * if the spacebar is pressed, react accordingly.
+	 * Controls the jumping command. jumpKeyPressed means if the spacebar is
+	 * pressed, react accordingly.
 	 * 
 	 * On ground, jump. If in the air and space is let go, fall.
 	 * 
-	 * If falling and has feather, fall slower. Otherwise
-	 * just fall.
+	 * If falling and has feather, fall slower. Otherwise just fall.
+	 * 
 	 * @param jumpKeyPressed
 	 */
-	public void setJumping (boolean jumpKeyPressed) {
-		switch (jumpState) {
+	public void setJumping(boolean jumpKeyPressed)
+	{
+		switch (jumpState)
+		{
 		case GROUNDED: // Character is standing on a platform
-			if (jumpKeyPressed) {
+			if (jumpKeyPressed)
+			{
 				// Start counting jump time from the beginning
 				timeJumping = 0;
 				jumpState = JUMP_STATE.JUMP_RISING;
 			}
 			break;
 		case JUMP_RISING: // Rising in the air
-			if (!jumpKeyPressed) {
+			if (!jumpKeyPressed)
+			{
 				jumpState = JUMP_STATE.JUMP_FALLING;
 			}
 			break;
 		case FALLING:// Falling down
 		case JUMP_FALLING: // Falling down after jump
-			if (jumpKeyPressed && hasFeatherPowerup) {
+			if (jumpKeyPressed && hasFeatherPowerup)
+			{
 				timeJumping = JUMP_TIME_OFFSET_FLYING;
 				jumpState = JUMP_STATE.JUMP_RISING;
 			}

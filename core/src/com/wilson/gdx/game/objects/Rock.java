@@ -3,14 +3,17 @@ package com.wilson.gdx.game.objects;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.wilson.gdx.game.Assets;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 
 /**
- * The Rock Object is divided up in to three parts using two different images
- * in our atlas. We have a middle and an edge piece.
+ * The Rock Object is divided up in to three parts using two different images in
+ * our atlas. We have a middle and an edge piece.
  * 
- * The middle piece is what is tiled throughout the game, and we have an
- * edge that is placed to cap off the sides so as not to make the game
- * look like blocks.
+ * The middle piece is what is tiled throughout the game, and we have an edge
+ * that is placed to cap off the sides so as not to make the game look like
+ * blocks.
+ * 
  * @author Chris
  *
  */
@@ -23,7 +26,20 @@ public class Rock extends AbstractGameObject
 	private TextureRegion regEdge;
 	private TextureRegion regMiddle;
 
+	// Start length of this rock
 	private int length;
+
+	/**
+	 * Makes floating mechanism of rocks correctly initialized.
+	 * Cycle time is randomly picked between 0 and half a
+	 * maximum float cycle time. This allows rocks to be in different
+	 * positions when they initialize.
+	 */
+	private final float FLOAT_CYCLE_TIME = 2.0f;
+	private final float FLOAT_AMPLITUDE = 0.25f;
+	private float floatCycleTimeLeft;
+	private boolean floatingDownwards;
+	private Vector2 floatTargetPosition;
 
 	public Rock()
 	{
@@ -39,10 +55,15 @@ public class Rock extends AbstractGameObject
 
 		// Start length of this rock
 		setLength(1);
+
+		floatingDownwards = false;
+		floatCycleTimeLeft = MathUtils.random(0, FLOAT_CYCLE_TIME / 2);
+		floatTargetPosition = null;
 	}
 
 	/**
 	 * Sets the starting length of the rock.
+	 * 
 	 * @param length
 	 */
 	public void setLength(int length)
@@ -53,8 +74,9 @@ public class Rock extends AbstractGameObject
 	}
 
 	/**
-	 * Lets us increase the length of a rock by a given amount.
-	 * This is used by our level loader.
+	 * Lets us increase the length of a rock by a given amount. This is used by
+	 * our level loader.
+	 * 
 	 * @param amount
 	 */
 	public void increaseLength(int amount)
@@ -63,8 +85,8 @@ public class Rock extends AbstractGameObject
 	}
 
 	/**
-	 * We inherit from AbstractGame Object so we need to implement
-	 * a render method and override it.
+	 * We inherit from AbstractGame Object so we need to implement a render
+	 * method and override it.
 	 */
 	@Override
 	public void render(SpriteBatch batch)
@@ -75,13 +97,13 @@ public class Rock extends AbstractGameObject
 		float relY = 0;
 
 		/**
-		 * This method cuts out a rectangle from our atlas and draws it
-		 * to the position given with originX and originY. The width and height
-		 * define the dimension of the object itself.
+		 * This method cuts out a rectangle from our atlas and draws it to the
+		 * position given with originX and originY. The width and height define
+		 * the dimension of the object itself.
 		 * 
 		 * The final two booleans are flip booleans. These will flip the image
-		 * of the rocks edge so that we can use one image to accomplish
-		 * two different requirements.
+		 * of the rocks edge so that we can use one image to accomplish two
+		 * different requirements.
 		 * 
 		 * The first boolean would flip vertically, so we keep that false. We
 		 * turn on flip Y to flip it horizontally.
@@ -109,6 +131,23 @@ public class Rock extends AbstractGameObject
 		batch.draw(reg.getTexture(), position.x + relX, position.y + relY, origin.x + dimension.x / 8, origin.y,
 		        dimension.x / 4, dimension.y, scale.x, scale.y, rotation, reg.getRegionX(), reg.getRegionY(),
 		        reg.getRegionWidth(), reg.getRegionHeight(), true, false);
+	}
+
+	@Override
+	public void update(float deltaTime)
+	{
+		super.update(deltaTime);
+
+		floatCycleTimeLeft -= deltaTime;
+		if (floatTargetPosition == null)
+			floatTargetPosition = new Vector2(position);
+		if (floatCycleTimeLeft <= 0)
+		{
+			floatCycleTimeLeft = FLOAT_CYCLE_TIME;
+			floatingDownwards = !floatingDownwards;
+			floatTargetPosition.y += FLOAT_AMPLITUDE * (floatingDownwards ? -1 : 1);
+		}
+		position.lerp(floatTargetPosition, deltaTime);
 	}
 
 }
