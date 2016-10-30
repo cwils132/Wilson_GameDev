@@ -9,6 +9,8 @@ import com.wilson.gdx.util.GamePreferences;
 import com.wilson.gdx.util.CharacterSkin;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.math.MathUtils;
+import com.wilson.gdx.util.AudioManager;
 
 public class BunnyHead extends AbstractGameObject
 {
@@ -57,8 +59,8 @@ public class BunnyHead extends AbstractGameObject
 	 * Immediately sets jump state to falling, that the bunny will be looking to
 	 * the right, and that we have no feather powerup.
 	 * 
-	 * Uses dust particles file to generate dust as the bunny moves around the
-	 * screen on the ground.
+	 * Uses dust particles file to generate dust as the bunny moves around
+	 * the screen on the ground.
 	 */
 	public void init()
 	{
@@ -89,26 +91,21 @@ public class BunnyHead extends AbstractGameObject
 		timeLeftFeatherPowerup = 0;
 
 		// Particles
-		dustParticles.load(Gdx.files.internal("../core/assets/particles/dust.pfx"),
-		        Gdx.files.internal("../core/assets/particles"));
+		dustParticles.load(Gdx.files.internal("../core/assets/particles/dust.pfx"), Gdx.files.internal("../core/assets/particles"));
 	}
 
 	/**
 	 * Updates the screen as you move, the feather timer counts down, etc.
 	 */
 	@Override
-	public void update(float deltaTime)
-	{
+	public void update (float deltaTime) {
 		super.update(deltaTime);
-		if (velocity.x != 0)
-		{
+		if (velocity.x != 0) {
 			viewDirection = velocity.x < 0 ? VIEW_DIRECTION.LEFT : VIEW_DIRECTION.RIGHT;
 		}
-		if (timeLeftFeatherPowerup > 0)
-		{
+		if (timeLeftFeatherPowerup > 0) {
 			timeLeftFeatherPowerup -= deltaTime;
-			if (timeLeftFeatherPowerup < 0)
-			{
+			if (timeLeftFeatherPowerup < 0) {
 				// disable power-up
 				timeLeftFeatherPowerup = 0;
 				setFeatherPowerup(false);
@@ -128,11 +125,6 @@ public class BunnyHead extends AbstractGameObject
 		{
 		case GROUNDED:
 			jumpState = JUMP_STATE.FALLING;
-			if (velocity.x != 0)
-			{
-				dustParticles.setPosition(position.x + dimension.x / 2, position.y);
-				dustParticles.start();
-			}
 			break;
 		case JUMP_RISING:
 			// Keep track of jump time
@@ -168,8 +160,7 @@ public class BunnyHead extends AbstractGameObject
 	 * Otherwise just draws the head from the region of the atlas.
 	 */
 	@Override
-	public void render(SpriteBatch batch)
-	{
+	public void render (SpriteBatch batch) {
 		TextureRegion reg = null;
 
 		// Draw Particles
@@ -179,16 +170,15 @@ public class BunnyHead extends AbstractGameObject
 		batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
 
 		// Set special color when game object has a feather power-up
-		if (hasFeatherPowerup)
-		{
+		if (hasFeatherPowerup) {
 			batch.setColor(1.0f, 0.8f, 0.0f, 1.0f);
 		}
 
 		// Draw image
 		reg = regHead;
-		batch.draw(reg.getTexture(), position.x, position.y, origin.x, origin.y, dimension.x, dimension.y, scale.x,
-		        scale.y, rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(), reg.getRegionHeight(),
-		        viewDirection == VIEW_DIRECTION.LEFT, false);
+		batch.draw(reg.getTexture(), position.x, position.y, origin.x, origin.y, dimension.x, dimension.y, scale.x, scale.y,
+			rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(), reg.getRegionHeight(),
+			viewDirection == VIEW_DIRECTION.LEFT, false);
 
 		// Reset color to white
 		batch.setColor(1, 1, 1, 1);
@@ -236,6 +226,10 @@ public class BunnyHead extends AbstractGameObject
 		case GROUNDED: // Character is standing on a platform
 			if (jumpKeyPressed)
 			{
+				/**
+				 * Plays jump sound when jump key is pressed
+				 */
+				AudioManager.instance.play(Assets.instance.sounds.jump);
 				// Start counting jump time from the beginning
 				timeJumping = 0;
 				jumpState = JUMP_STATE.JUMP_RISING;
@@ -251,6 +245,7 @@ public class BunnyHead extends AbstractGameObject
 		case JUMP_FALLING: // Falling down after jump
 			if (jumpKeyPressed && hasFeatherPowerup)
 			{
+				AudioManager.instance.play(Assets.instance.sounds.jumpWithFeather, 1, MathUtils.random(1.0f, 1.1f));
 				timeJumping = JUMP_TIME_OFFSET_FLYING;
 				jumpState = JUMP_STATE.JUMP_RISING;
 			}

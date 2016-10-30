@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.utils.Disposable;
 import com.wilson.gdx.util.Constants;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 
 public class Assets implements Disposable, AssetErrorListener
 {
@@ -22,11 +24,14 @@ public class Assets implements Disposable, AssetErrorListener
 	private AssetManager assetManager;
 
 	public AssetFonts fonts;
-	public AssetBunny character;
+	public AssetBunny bunny;
 	public AssetRock rock;
-	public AssetRedBook redBook;
+	public AssetGoldCoin goldCoin;
 	public AssetFeather feather;
 	public AssetLevelDecoration levelDecoration;
+
+	public AssetSounds sounds;
+	public AssetMusic music;
 
 	// singleton: prevent instantiation from other classes
 	private Assets()
@@ -82,7 +87,7 @@ public class Assets implements Disposable, AssetErrorListener
 
 		public AssetBunny(TextureAtlas atlas)
 		{
-			head = atlas.findRegion("char");
+			head = atlas.findRegion("bunny_head");
 		}
 	}
 
@@ -93,50 +98,48 @@ public class Assets implements Disposable, AssetErrorListener
 
 		public AssetRock(TextureAtlas atlas)
 		{
-			edge = atlas.findRegion("floor_edge");
-			middle = atlas.findRegion("floor_middle");
+			edge = atlas.findRegion("rock_edge");
+			middle = atlas.findRegion("rock_middle");
 		}
 	}
 
-	public class AssetRedBook
+	public class AssetGoldCoin
 	{
-		public final AtlasRegion book;
+		public final AtlasRegion goldCoin;
 
-		public AssetRedBook(TextureAtlas atlas)
+		public AssetGoldCoin(TextureAtlas atlas)
 		{
-			book = atlas.findRegion("book");
+			goldCoin = atlas.findRegion("item_gold_coin");
 		}
 	}
 
 	public class AssetFeather
 	{
-		public final AtlasRegion ruby;
+		public final AtlasRegion feather;
 
 		public AssetFeather(TextureAtlas atlas)
 		{
-			ruby = atlas.findRegion("ruby");
+			feather = atlas.findRegion("item_feather");
 		}
 	}
 
 	public class AssetLevelDecoration
 	{
-		public final AtlasRegion dust01;
-		public final AtlasRegion dust02;
-		public final AtlasRegion dust03;
-		public final AtlasRegion backgroundLeft;
-		public final AtlasRegion backgroundRight;
-		public final AtlasRegion backgroundMiddle;
-		public final AtlasRegion dustOverlay;
+		public final AtlasRegion cloud01;
+		public final AtlasRegion cloud02;
+		public final AtlasRegion cloud03;
+		public final AtlasRegion mountainLeft;
+		public final AtlasRegion mountainRight;
+		public final AtlasRegion waterOverlay;
 
 		public AssetLevelDecoration(TextureAtlas atlas)
 		{
-			dust01 = atlas.findRegion("dust01");
-			dust02 = atlas.findRegion("dust02");
-			dust03 = atlas.findRegion("dust03");
-			backgroundLeft = atlas.findRegion("background3");
-			backgroundRight = atlas.findRegion("background3");
-			backgroundMiddle = atlas.findRegion("background2");
-			dustOverlay = atlas.findRegion("dust_overlay");
+			cloud01 = atlas.findRegion("cloud01");
+			cloud02 = atlas.findRegion("cloud02");
+			cloud03 = atlas.findRegion("cloud03");
+			mountainLeft = atlas.findRegion("mountain_left");
+			mountainRight = atlas.findRegion("mountain_right");
+			waterOverlay = atlas.findRegion("water_overlay");
 		}
 	}
 
@@ -157,6 +160,14 @@ public class Assets implements Disposable, AssetErrorListener
 		assetManager.setErrorListener(this);
 		// load texture atlas
 		assetManager.load(Constants.TEXTURE_ATLAS_OBJECTS, TextureAtlas.class);
+		// load sounds
+		assetManager.load("../core/assets/sounds/jump.wav", Sound.class);
+		assetManager.load("../core/assets/sounds/jump_with_feather.wav", Sound.class);
+		assetManager.load("../core/assets/sounds/pickup_coin.wav", Sound.class);
+		assetManager.load("../core/assets/sounds/pickup_feather.wav", Sound.class);
+		assetManager.load("../core/assets/sounds/live_lost.wav", Sound.class);
+		// load music
+		assetManager.load("../core/assets/music/keith303_-_brand_new_highscore.mp3", Music.class);
 		// start loading assets and wait until finished
 		assetManager.finishLoading();
 
@@ -176,11 +187,13 @@ public class Assets implements Disposable, AssetErrorListener
 
 		// create game resource objects
 		fonts = new AssetFonts();
-		character = new AssetBunny(atlas);
+		bunny = new AssetBunny(atlas);
 		rock = new AssetRock(atlas);
-		redBook = new AssetRedBook(atlas);
+		goldCoin = new AssetGoldCoin(atlas);
 		feather = new AssetFeather(atlas);
 		levelDecoration = new AssetLevelDecoration(atlas);
+		sounds = new AssetSounds(assetManager);
+		music = new AssetMusic(assetManager);
 	}
 
 	@Override
@@ -199,4 +212,36 @@ public class Assets implements Disposable, AssetErrorListener
 
 	}
 
+	public class AssetSounds
+	{
+		public final Sound jump;
+		public final Sound jumpWithFeather;
+		public final Sound pickupCoin;
+		public final Sound pickupFeather;
+		public final Sound liveLost;
+
+		public AssetSounds(AssetManager am)
+		{
+			jump = am.get("../core/assets/sounds/jump.wav", Sound.class);
+			jumpWithFeather = am.get("../core/assets/sounds/jump_with_feather.wav", Sound.class);
+			pickupCoin = am.get("../core/assets/sounds/pickup_coin.wav", Sound.class);
+			pickupFeather = am.get("../core/assets/sounds/pickup_feather.wav", Sound.class);
+			liveLost = am.get("../core/assets/sounds/live_lost.wav", Sound.class);
+		}
+	}
+
+	/**
+	 * Loads music in to song01 from core.
+	 * @author Chris
+	 *
+	 */
+	public class AssetMusic
+	{
+		public final Music song01;
+
+		public AssetMusic(AssetManager am)
+		{
+			song01 = am.get("../core/assets/music/keith303_-_brand_new_highscore.mp3", Music.class);
+		}
+	}
 }
