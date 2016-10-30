@@ -4,18 +4,19 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.wilson.gdx.game.Assets;
+import com.badlogic.gdx.InputProcessor;
 
 public abstract class AbstractGameScreen implements Screen
 {
 
 	/**
-	 * This abstract class provides methods for GameScreen and MenuScreen.
-	 * Keeps WorldController and WorldRenderer from being directly used
-	 * by the main class.
+	 * This abstract class provides methods for GameScreen and MenuScreen. Keeps
+	 * WorldController and WorldRenderer from being directly used by the main
+	 * class.
 	 */
-	protected Game game;
+	protected DirectedGame game;
 
-	public AbstractGameScreen(Game game)
+	public AbstractGameScreen(DirectedGame game)
 	{
 		this.game = game;
 	}
@@ -29,6 +30,8 @@ public abstract class AbstractGameScreen implements Screen
 	public abstract void hide();
 
 	public abstract void pause();
+
+	public abstract InputProcessor getInputProcessor();
 
 	public void resume()
 	{
