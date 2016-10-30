@@ -3,6 +3,7 @@ package com.wilson.gdx.screens;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -27,6 +28,10 @@ import com.wilson.gdx.game.Assets;
 import com.wilson.gdx.util.CharacterSkin;
 import com.wilson.gdx.util.Constants;
 import com.wilson.gdx.util.GamePreferences;
+import com.badlogic.gdx.InputProcessor;
+import com.wilson.gdx.screens.transitions.ScreenTransition;
+import com.wilson.gdx.screens.transitions.ScreenTransitionFade;
+import com.wilson.gdx.util.AudioManager;
 
 public class MenuScreen extends AbstractGameScreen
 {
@@ -63,7 +68,7 @@ public class MenuScreen extends AbstractGameScreen
 	private boolean debugEnabled = false;
 	private float debugRebuildStage;
 
-	public MenuScreen(Game game)
+	public MenuScreen(DirectedGame game)
 	{
 		super(game);
 	}
@@ -96,6 +101,12 @@ public class MenuScreen extends AbstractGameScreen
 		stage.draw();
 		stage.setDebugAll(true); // Old version was Table.setDebug(stage);
 	}
+	
+	@Override
+	public InputProcessor getInputProcessor()
+	{
+		return stage;
+	}
 
 	@Override
 	public void resize(int width, int height)
@@ -108,7 +119,6 @@ public class MenuScreen extends AbstractGameScreen
 	{
 
 		stage = new Stage(new StretchViewport(Constants.VIEWPORT_GUI_WIDTH, Constants.VIEWPORT_GUI_HEIGHT));
-		Gdx.input.setInputProcessor(stage);
 		rebuildStage();
 	}
 
@@ -295,7 +305,7 @@ public class MenuScreen extends AbstractGameScreen
 		});
 		tbl.add(selCharSkin).width(120).padRight(20);
 		// + Skin preview image
-		imgCharSkin = new Image(Assets.instance.character.head);
+		imgCharSkin = new Image(Assets.instance.bunny.head);
 		tbl.add(imgCharSkin).width(50).height(50);
 		return tbl;
 	}
@@ -406,7 +416,8 @@ public class MenuScreen extends AbstractGameScreen
 
 	private void onPlayClicked()
 	{
-		game.setScreen(new GameScreen(game));
+		ScreenTransition transition = ScreenTransitionFade.init(0.75f);
+		game.setScreen(new GameScreen(game), transition);
 	}
 
 	private void onOptionsClicked()
@@ -458,6 +469,7 @@ public class MenuScreen extends AbstractGameScreen
 	{
 		saveSettings();
 		onCancelClicked();
+		AudioManager.instance.onSettingsUpdated();
 	}
 
 	/**
@@ -468,5 +480,6 @@ public class MenuScreen extends AbstractGameScreen
 		btnMenuPlay.setVisible(true);
 		btnMenuOptions.setVisible(true);
 		winOptions.setVisible(false);
+		AudioManager.instance.onSettingsUpdated();
 	}
 }

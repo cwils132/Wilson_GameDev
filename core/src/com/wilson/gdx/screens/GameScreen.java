@@ -2,10 +2,12 @@ package com.wilson.gdx.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
 import com.wilson.gdx.game.WorldController;
 import com.wilson.gdx.game.WorldRenderer;
 import com.wilson.gdx.util.GamePreferences;
+import com.badlogic.gdx.InputProcessor;
 
 public class GameScreen extends AbstractGameScreen
 {
@@ -21,7 +23,7 @@ public class GameScreen extends AbstractGameScreen
 
 	private boolean paused;
 
-	public GameScreen(Game game)
+	public GameScreen(DirectedGame game)
 	{
 		super(game);
 	}
@@ -37,7 +39,7 @@ public class GameScreen extends AbstractGameScreen
 			worldController.update(deltaTime);
 		}
 		// Sets the clear screen color to: Cornflower Blue
-		Gdx.gl.glClearColor(0.5f, 0.5f, 0.0f, 0.0f);
+		Gdx.gl.glClearColor(0x64 / 255.0f, 0x95 / 255.0f, 0xed / 255.0f, 0xff / 255.0f);
 		// Clears the screen
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		// Render game world to screen
@@ -48,6 +50,12 @@ public class GameScreen extends AbstractGameScreen
 	public void resize(int width, int height)
 	{
 		worldRenderer.resize(width, height);
+	}
+	
+	@Override
+	public InputProcessor getInputProcessor()
+	{
+		return worldController;
 	}
 
 	/**
@@ -83,5 +91,4 @@ public class GameScreen extends AbstractGameScreen
 		// Only called on Android!
 		paused = false;
 	}
-
 }
