@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetErrorListener;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -11,6 +13,8 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.utils.Disposable;
 import com.wilson.gdx.util.Constants;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.wilson.gdx.util.AudioManager;
+import com.wilson.gdx.util.GamePreferences;
 
 public class Assets implements Disposable, AssetErrorListener
 {
@@ -27,6 +31,9 @@ public class Assets implements Disposable, AssetErrorListener
 	public AssetRedBook redBook;
 	public AssetFeather feather;
 	public AssetLevelDecoration levelDecoration;
+	
+	public AssetSounds sounds;
+	public AssetMusic music;
 
 	// singleton: prevent instantiation from other classes
 	private Assets()
@@ -157,6 +164,14 @@ public class Assets implements Disposable, AssetErrorListener
 		assetManager.setErrorListener(this);
 		// load texture atlas
 		assetManager.load(Constants.TEXTURE_ATLAS_OBJECTS, TextureAtlas.class);
+		// load sounds
+		assetManager.load("../core/assets/sounds/jump.wav", Sound.class);
+		assetManager.load("../core/assets/sounds/jump_with_feather.wav", Sound.class);
+		assetManager.load("../core/assets/sounds/book.wav", Sound.class);
+		assetManager.load("../core/assets/sounds/pickup_feather.wav", Sound.class);
+		assetManager.load("../core/assets/sounds/live_lost.wav", Sound.class);
+		// load music
+		assetManager.load("../core/assets/music/keith303_-_brand_new_highscore.mp3", Music.class);
 		// start loading assets and wait until finished
 		assetManager.finishLoading();
 
@@ -181,6 +196,41 @@ public class Assets implements Disposable, AssetErrorListener
 		redBook = new AssetRedBook(atlas);
 		feather = new AssetFeather(atlas);
 		levelDecoration = new AssetLevelDecoration(atlas);
+		sounds = new AssetSounds(assetManager);
+		music = new AssetMusic(assetManager);
+	}
+	
+	public class AssetSounds
+	{
+		public final Sound jump;
+		public final Sound jumpWithFeather;
+		public final Sound pickupCoin;
+		public final Sound pickupFeather;
+		public final Sound liveLost;
+
+		public AssetSounds(AssetManager am)
+		{
+			jump = am.get("../core/assets/sounds/jump.wav", Sound.class);
+			jumpWithFeather = am.get("../core/assets/sounds/jump_with_feather.wav", Sound.class);
+			pickupCoin = am.get("../core/assets/sounds/book.wav", Sound.class);
+			pickupFeather = am.get("../core/assets/sounds/pickup_feather.wav", Sound.class);
+			liveLost = am.get("../core/assets/sounds/live_lost.wav", Sound.class);
+		}
+	}
+
+	/**
+	 * Loads music in to song01 from core.
+	 * @author Chris
+	 *
+	 */
+	public class AssetMusic
+	{
+		public final Music song01;
+
+		public AssetMusic(AssetManager am)
+		{
+			song01 = am.get("../core/assets/music/keith303_-_brand_new_highscore.mp3", Music.class);
+		}
 	}
 
 	@Override
