@@ -27,8 +27,7 @@ public class GamePreferences
 	}
 
 	/**
-	 * Tries to find a way to output sound through a 
-	 * valid channel.
+	 * Tries to find a way to output sound through a valid channel.
 	 */
 	public void load()
 	{
@@ -41,7 +40,8 @@ public class GamePreferences
 	}
 
 	/**
-	 * Takes values of the public variables and puts them into the map of the preferences file.
+	 * Takes values of the public variables and puts them into the map of the
+	 * preferences file.
 	 */
 	public void save()
 	{
