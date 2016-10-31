@@ -27,6 +27,7 @@ import com.wilson.gdx.game.Assets;
 import com.wilson.gdx.util.CharacterSkin;
 import com.wilson.gdx.util.Constants;
 import com.wilson.gdx.util.GamePreferences;
+import com.wilson.gdx.util.AudioManager;
 
 public class MenuScreen extends AbstractGameScreen
 {
@@ -458,6 +459,7 @@ public class MenuScreen extends AbstractGameScreen
 	{
 		saveSettings();
 		onCancelClicked();
+		AudioManager.instance.onSettingsUpdated();
 	}
 
 	/**
@@ -468,5 +470,6 @@ public class MenuScreen extends AbstractGameScreen
 		btnMenuPlay.setVisible(true);
 		btnMenuOptions.setVisible(true);
 		winOptions.setVisible(false);
+		AudioManager.instance.onSettingsUpdated();
 	}
 }
