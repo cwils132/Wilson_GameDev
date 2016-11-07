@@ -3,16 +3,32 @@ package com.wilson.gdx.game;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Input.Peripheral;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.wilson.gdx.util.CameraHelper;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.util.Constants;
 import com.badlogic.gdx.Game;
 import com.wilson.gdx.screens.MenuScreen;
+import com.wilson.gdx.screens.DirectedGame;
+import com.badlogic.gdx.math.Interpolation;
+import com.wilson.gdx.screens.transitions.ScreenTransition;
+import com.wilson.gdx.screens.transitions.ScreenTransitionSlide;
+import com.wilson.gdx.util.AudioManager;
+
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.World;
+import com.wilson.gdx.game.objects.Carrot;
+import com.badlogic.gdx.utils.Disposable;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.wilson.gdx.game.objects.BunnyHead;
@@ -21,16 +37,18 @@ import com.wilson.gdx.game.objects.Feather;
 import com.wilson.gdx.game.objects.GoldCoin;
 import com.wilson.gdx.game.objects.Rock;
 
-public class WorldController extends InputAdapter
+public class WorldController extends InputAdapter implements Disposable
 {
 
 	private static final String TAG = WorldController.class.getName();
 
+	private DirectedGame game;
 	public Level level;
 	public int lives;
+	public float livesVisual;
 	public int score;
-	public float livesVisual; // decreases when lives decrease
 	public float scoreVisual;
+	private boolean goalReached;
 
 	public CameraHelper cameraHelper;
 
@@ -40,9 +58,12 @@ public class WorldController extends InputAdapter
 
 	private float timeLeftGameOverDelay;
 
-	private Game game;
+	/**
+	 * Creates a Box2D world for the physics engine
+	 */
+	public World b2world;
 
-	public WorldController(Game game)
+	public WorldController(DirectedGame game)
 	{
 		this.game = game;
 		init();
@@ -50,7 +71,6 @@ public class WorldController extends InputAdapter
 
 	private void init()
 	{
-		Gdx.input.setInputProcessor(this);
 		cameraHelper = new CameraHelper();
 		lives = Constants.LIVES_START;
 		livesVisual = lives;
@@ -62,24 +82,52 @@ public class WorldController extends InputAdapter
 	{
 		score = 0;
 		scoreVisual = score;
+		goalReached = false;
 		level = new Level(Constants.LEVEL_01);
 		cameraHelper.setTarget(level.bunnyHead);
+		initPhysics();
 	}
 
 	/**
-	 * Calls to CameraHelper to update the game as things change with the
-	 * images. Also tells the program to cause the image rotations, and debugs
-	 * as necessary.
-	 * 
-	 * In this case, the debug checks to make sure the program is running
-	 * through the desktop.
+	 * Creates the physics for Box2D in the game. Gives rocks a body polygon
+	 * shape for use in collision detection with BunnyHead.
+	 */
+	private void initPhysics()
+	{
+		if (b2world != null)
+			b2world.dispose();
+		b2world = new World(new Vector2(0, -9.81f), true);
+		// Rocks
+		Vector2 origin = new Vector2();
+		for (Rock rock : level.rocks)
+		{
+			BodyDef bodyDef = new BodyDef();
+			bodyDef.type = BodyType.KinematicBody;
+			bodyDef.position.set(rock.position);
+			Body body = b2world.createBody(bodyDef);
+			rock.body = body;
+			PolygonShape polygonShape = new PolygonShape();
+			origin.x = rock.bounds.width / 2.0f;
+			origin.y = rock.bounds.height / 2.0f;
+			polygonShape.setAsBox(rock.bounds.width / 2.0f, rock.bounds.height / 2.0f, origin, 0);
+			FixtureDef fixtureDef = new FixtureDef();
+			fixtureDef.shape = polygonShape;
+			body.createFixture(fixtureDef);
+			polygonShape.dispose();
+		}
+	}
+
+	/**
+	 * Updates the game for use in tracking the camera, playing sounds, checking
+	 * if the player fell in water, updating the level, and other various tasks.
+	 * Also updates if lives are lost and displays if the game is over.
 	 * 
 	 * @param deltaTime
 	 */
 	public void update(float deltaTime)
 	{
 		handleDebugInput(deltaTime);
-		if (isGameOver())
+		if (isGameOver() || goalReached)
 		{
 			timeLeftGameOverDelay -= deltaTime;
 			if (timeLeftGameOverDelay < 0)
@@ -90,9 +138,11 @@ public class WorldController extends InputAdapter
 		}
 		level.update(deltaTime);
 		testCollisions();
+		b2world.step(deltaTime, 8, 3);
 		cameraHelper.update(deltaTime);
 		if (!isGameOver() && isPlayerInWater())
 		{
+			AudioManager.instance.play(Assets.instance.sounds.liveLost);
 			lives--;
 			if (isGameOver())
 				timeLeftGameOverDelay = Constants.TIME_DELAY_GAME_OVER;
@@ -106,16 +156,31 @@ public class WorldController extends InputAdapter
 			scoreVisual = Math.min(score, scoreVisual + 250 * deltaTime);
 	}
 
+	/**
+	 * Check to see if the game is over.
+	 * 
+	 * @return
+	 */
 	public boolean isGameOver()
 	{
 		return lives < 0;
 	}
 
+	/**
+	 * If the player falls, return the player to the beginning position of the
+	 * level.
+	 * 
+	 * @return
+	 */
 	public boolean isPlayerInWater()
 	{
 		return level.bunnyHead.position.y < -5;
 	}
 
+	/**
+	 * Monitors for various collision situations and calls to the appropriate
+	 * methods to execute actions.
+	 */
 	private void testCollisions()
 	{
 		r1.set(level.bunnyHead.position.x, level.bunnyHead.position.y, level.bunnyHead.bounds.width,
@@ -155,8 +220,24 @@ public class WorldController extends InputAdapter
 			onCollisionBunnyWithFeather(feather);
 			break;
 		}
+
+		// Test collision: Bunny Head <-> Goal
+		if (!goalReached)
+		{
+			r2.set(level.goal.bounds);
+			r2.x += level.goal.position.x;
+			r2.y += level.goal.position.y;
+			if (r1.overlaps(r2))
+				onCollisionBunnyWithGoal();
+		}
 	}
 
+	/**
+	 * Determines collision with rocks so the BunnyHead does not pass through
+	 * the rocks and fall when it is not supposed to.
+	 * 
+	 * @param rock
+	 */
 	private void onCollisionBunnyHeadWithRock(Rock rock)
 	{
 		BunnyHead bunnyHead = level.bunnyHead;
@@ -189,29 +270,50 @@ public class WorldController extends InputAdapter
 		}
 	}
 
+	/**
+	 * If the player collides with a coin the score is increased, a sound is
+	 * played, and the coin object is destroyed.
+	 * 
+	 * @param goldcoin
+	 */
 	private void onCollisionBunnyWithGoldCoin(GoldCoin goldcoin)
 	{
 		goldcoin.collected = true;
+		AudioManager.instance.play(Assets.instance.sounds.pickupCoin);
 		score += goldcoin.getScore();
-		Gdx.app.log(TAG, "Book collected");
-	}
-
-	private void onCollisionBunnyWithFeather(Feather feather)
-	{
-		feather.collected = true;
-		score += feather.getScore();
-		level.bunnyHead.setFeatherPowerup(true);
-		Gdx.app.log(TAG, "Ruby collected");
+		Gdx.app.log(TAG, "Gold coin collected");
 	}
 
 	/**
-	 * If the program is running in Desktop mode, keyboard use is enabled. The
-	 * keyboard is used by called InputAdapter. By using the Keys() method
-	 * LibGDX is able to tell what keyboard keys are used at each press.
+	 * If the character collides with a feather the feather is destroyed, the
+	 * player gains a powerup, a sound is played, and score is increased.
 	 * 
-	 * When a key is pressed, the if statement checks it and performs the
-	 * corresponding action. This will currently move objects around the screen
-	 * or move the camera itself.
+	 * @param feather
+	 */
+	private void onCollisionBunnyWithFeather(Feather feather)
+	{
+		feather.collected = true;
+		AudioManager.instance.play(Assets.instance.sounds.pickupFeather);
+		score += feather.getScore();
+		level.bunnyHead.setFeatherPowerup(true);
+		Gdx.app.log(TAG, "Feather collected");
+	}
+
+	/**
+	 * If the player comes in contact with the Goal object carrots are spawned
+	 * and rained down based on the players location.
+	 */
+	private void onCollisionBunnyWithGoal()
+	{
+		goalReached = true;
+		timeLeftGameOverDelay = Constants.TIME_DELAY_GAME_FINISHED;
+		Vector2 centerPosBunnyHead = new Vector2(level.bunnyHead.position);
+		centerPosBunnyHead.x += level.bunnyHead.bounds.width;
+		spawnCarrots(centerPosBunnyHead, Constants.CARROTS_SPAWN_MAX, Constants.CARROTS_SPAWN_RADIUS);
+	}
+
+	/**
+	 * Handles debug movement with the camera to view level.
 	 * 
 	 * @param deltaTime
 	 */
@@ -253,16 +355,8 @@ public class WorldController extends InputAdapter
 	}
 
 	/**
-	 * This is set up to handle player inputs on the bunnyHead. When left or
-	 * right is pressed it gets the terminalVelocity value of the BunnyHead
-	 * object and executes movement.
-	 * 
-	 * (Terminal Velocity values actually stored in AbstractGameObject)
-	 * 
-	 * Jump is different however. The calculations are stored in BunnyHead since
-	 * we don't need anything else to be able to jump when we press space. It
-	 * calls to a function setJumping() and it executes depending on the
-	 * situation.
+	 * Moves character if left arrow button is pressed. If right arrow is
+	 * pressed, move right. Space jumps.
 	 * 
 	 * @param deltaTime
 	 */
@@ -279,11 +373,7 @@ public class WorldController extends InputAdapter
 				level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
 			} else
 			{
-				// Execute auto-forward movement on non-desktop platform
-				if (Gdx.app.getType() != ApplicationType.Desktop)
-				{
-					level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
-				}
+				level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
 			}
 
 			// Bunny Jump
@@ -301,10 +391,6 @@ public class WorldController extends InputAdapter
 		cameraHelper.setPosition(x, y);
 	}
 
-	/**
-	 * Further key input commands. Reset, Select next sprite, Toggle Camera
-	 * follow
-	 */
 	@Override
 	public boolean keyUp(int keycode)
 	{
@@ -328,13 +414,71 @@ public class WorldController extends InputAdapter
 		return false;
 	}
 
-	/**
-	 * Allows us to switch back to menu whenever the player loses or hits
-	 * escape.
-	 */
 	private void backToMenu()
 	{
 		// switch to menu screen
-		game.setScreen(new MenuScreen(game));
+		ScreenTransition transition = ScreenTransitionSlide.init(0.75f, ScreenTransitionSlide.DOWN, false,
+		        Interpolation.bounceOut);
+		game.setScreen(new MenuScreen(game), transition);
 	}
+
+	@Override
+	public void dispose()
+	{
+		if (b2world != null)
+			b2world.dispose();
+	}
+
+	/**
+	 * Spawns carrots when the player reaches the goal. The amount of carrots
+	 * generated is determined by a cariable in the Constants class.
+	 * 
+	 * When carrots are made they are put in to an array of carrots. Each carrot
+	 * has a body so that when it collides with the ground it bounces off.
+	 * 
+	 * @param pos
+	 * @param numCarrots
+	 * @param radius
+	 */
+	private void spawnCarrots(Vector2 pos, int numCarrots, float radius)
+	{
+		float carrotShapeScale = 0.5f;
+		// create carrots with box2d body and fixture
+		for (int i = 0; i < numCarrots; i++)
+		{
+			Carrot carrot = new Carrot();
+			// calculate random spawn position, rotation, and scale
+			float x = MathUtils.random(-radius, radius);
+			float y = MathUtils.random(5.0f, 15.0f);
+			float rotation = MathUtils.random(0.0f, 360.0f) * MathUtils.degreesToRadians;
+			float carrotScale = MathUtils.random(0.5f, 1.5f);
+			carrot.scale.set(carrotScale, carrotScale);
+			// create box2d body for carrot with start position
+			// and angle of rotation
+			BodyDef bodyDef = new BodyDef();
+			bodyDef.position.set(pos);
+			bodyDef.position.add(x, y);
+			bodyDef.angle = rotation;
+			Body body = b2world.createBody(bodyDef);
+			body.setType(BodyType.DynamicBody);
+			carrot.body = body;
+			// create rectangular shape for carrot to allow
+			// interactions (collisions) with other objects
+			PolygonShape polygonShape = new PolygonShape();
+			float halfWidth = carrot.bounds.width / 2.0f * carrotScale;
+			float halfHeight = carrot.bounds.height / 2.0f * carrotScale;
+			polygonShape.setAsBox(halfWidth * carrotShapeScale, halfHeight * carrotShapeScale);
+			// set physics attributes
+			FixtureDef fixtureDef = new FixtureDef();
+			fixtureDef.shape = polygonShape;
+			fixtureDef.density = 50;
+			fixtureDef.restitution = 0.5f;
+			fixtureDef.friction = 0.5f;
+			body.createFixture(fixtureDef);
+			polygonShape.dispose();
+			// finally, add new carrot to list for updating/rendering
+			level.carrots.add(carrot);
+		}
+	}
+
 }

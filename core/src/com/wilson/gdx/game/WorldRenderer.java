@@ -6,10 +6,14 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.wilson.gdx.util.Constants;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.wilson.gdx.util.GamePreferences;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class WorldRenderer implements Disposable
 {
@@ -22,12 +26,18 @@ public class WorldRenderer implements Disposable
 	 * this game on WorldRenderers instantiation.
 	 */
 	private static final String TAG = WorldRenderer.class.getName();
-
-	private OrthographicCamera cameraGUI;
+	private static final boolean DEBUG_DRAW_BOX2D_WORLD = false;
 
 	private OrthographicCamera camera;
+	private OrthographicCamera cameraGUI;
 	private SpriteBatch batch;
 	private WorldController worldController;
+	private Box2DDebugRenderer b2debugRenderer;
+
+	/**
+	 * Creates a shader that turns the game grayscale.
+	 */
+	private ShaderProgram shaderMonochrome;
 
 	public WorldRenderer(WorldController worldController)
 	{
@@ -53,6 +63,14 @@ public class WorldRenderer implements Disposable
 		cameraGUI.position.set(0, 0, 0);
 		cameraGUI.setToOrtho(true); // flip y-axis
 		cameraGUI.update();
+		b2debugRenderer = new Box2DDebugRenderer();
+		shaderMonochrome = new ShaderProgram(Gdx.files.internal(Constants.shaderMonochromeVertex),
+		        Gdx.files.internal(Constants.shaderMonochromeFragment));
+		if (!shaderMonochrome.isCompiled())
+		{
+			String msg = "Could not compile shader program: " + shaderMonochrome.getLog();
+			throw new GdxRuntimeException(msg);
+		}
 	}
 
 	public void render()
@@ -72,8 +90,18 @@ public class WorldRenderer implements Disposable
 		worldController.cameraHelper.applyTo(camera);
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
+		if (GamePreferences.instance.useMonochromeShader)
+		{
+			batch.setShader(shaderMonochrome);
+			shaderMonochrome.setUniformf("u_amount", 1.0f);
+		}
 		worldController.level.render(batch);
+		batch.setShader(null);
 		batch.end();
+		if (DEBUG_DRAW_BOX2D_WORLD)
+		{
+			b2debugRenderer.render(worldController.b2world, camera.combined);
+		}
 	}
 
 	/**
@@ -125,8 +153,8 @@ public class WorldRenderer implements Disposable
 			offsetY += MathUtils.sinDeg(shakeAlpha * 2.9f) * shakeDist;
 		}
 		/**
-		 * scoreVisuals cast to int to cut off decimal values.
-		 * Resulting score is what is displayed in the GUI.
+		 * scoreVisuals cast to int to cut off decimal values. Resulting score
+		 * is what is displayed in the GUI.
 		 */
 		batch.draw(Assets.instance.goldCoin.goldCoin, x, y, offsetX, offsetY, 100, 100, 0.35f, -0.35f, 0);
 		Assets.instance.fonts.defaultBig.draw(batch, "" + (int) worldController.scoreVisual, x + 75, y + 37);
@@ -135,7 +163,8 @@ public class WorldRenderer implements Disposable
 	/**
 	 * Shows bunny heads depicting our total lives left
 	 * 
-	 * Whenever a life is lost, the icons alpha value is slowly increased to create a fading effect
+	 * Whenever a life is lost, the icons alpha value is slowly increased to
+	 * create a fading effect
 	 * 
 	 * @param batch
 	 */
@@ -245,12 +274,13 @@ public class WorldRenderer implements Disposable
 	}
 
 	/**
-	 * Destroys sprites when game is closed.
+	 * Destroys sprites when game is closed. Also destroys monochrome shader.
 	 */
 	@Override
 	public void dispose()
 	{
 		batch.dispose();
+		shaderMonochrome.dispose();
 	}
 
 }
