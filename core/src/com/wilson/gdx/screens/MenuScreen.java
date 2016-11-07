@@ -59,9 +59,10 @@ public class MenuScreen extends AbstractGameScreen
 	private Slider sldSound;
 	private CheckBox chkMusic;
 	private Slider sldMusic;
-	private SelectBox<CharacterSkin> selCharSkin;
+	private SelectBox selCharSkin;
 	private Image imgCharSkin;
 	private CheckBox chkShowFpsCounter;
+	private CheckBox chkUseMonochromeShader;
 
 	// debug
 	private final float DEBUG_REBUILD_INTERVAL = 5.0f;
@@ -73,15 +74,6 @@ public class MenuScreen extends AbstractGameScreen
 		super(game);
 	}
 
-	/**
-	 * This method does two things:
-	 * 1. Constantly clears screen by filling it with black
-	 * 2. Checks if the screen has been touched
-	 * As soon as screen is touched, the game switches from menu screen to
-	 * the game screen.
-	 * 
-	 * Replaces the old function of the main class to decouple it.
-	 */
 	@Override
 	public void render(float deltaTime)
 	{
@@ -96,16 +88,9 @@ public class MenuScreen extends AbstractGameScreen
 				rebuildStage();
 			}
 		}
-
 		stage.act(deltaTime);
 		stage.draw();
-		stage.setDebugAll(true); // Old version was Table.setDebug(stage);
-	}
-	
-	@Override
-	public InputProcessor getInputProcessor()
-	{
-		return stage;
+		stage.setDebugAll(true);
 	}
 
 	@Override
@@ -135,9 +120,6 @@ public class MenuScreen extends AbstractGameScreen
 	{
 	}
 
-	/**
-	 * This method builds everything for the menu screen
-	 */
 	private void rebuildStage()
 	{
 		skinCanyonBunny = new Skin(Gdx.files.internal(Constants.SKIN_CANYONBUNNY_UI),
@@ -235,12 +217,6 @@ public class MenuScreen extends AbstractGameScreen
 		return layer;
 	}
 
-	/**
-	 * Builds a table containing audio settings.
-	 * Adds the word "Audio" in orange, then a checkbox, and a slider to
-	 * enable or disable sound.
-	 * @return
-	 */
 	private Table buildOptWinAudioSettings()
 	{
 		Table tbl = new Table();
@@ -267,11 +243,6 @@ public class MenuScreen extends AbstractGameScreen
 		return tbl;
 	}
 
-	/**
-	 * Builds a table containing the character skin. Uses
-	 * a drop down menu with a preview of the skin.
-	 * @return
-	 */
 	private Table buildOptWinSkinSelection()
 	{
 		Table tbl = new Table();
@@ -310,11 +281,6 @@ public class MenuScreen extends AbstractGameScreen
 		return tbl;
 	}
 
-	/**
-	 * Builds a table that contains debug settings. Currently
-	 * only one option available, making FPS visible or not.
-	 * @return
-	 */
 	private Table buildOptWinDebug()
 	{
 		Table tbl = new Table();
@@ -329,17 +295,14 @@ public class MenuScreen extends AbstractGameScreen
 		tbl.add(new Label("Show FPS Counter", skinLibgdx));
 		tbl.add(chkShowFpsCounter);
 		tbl.row();
+		// + Checkbox, "Use Monochrome Shader" label
+		chkUseMonochromeShader = new CheckBox("", skinLibgdx);
+		tbl.add(new Label("Use Monochrome Shader", skinLibgdx));
+		tbl.add(chkUseMonochromeShader);
+		tbl.row();
 		return tbl;
 	}
 
-	/**
-	 * Builds a table that contains a separator and save and cancel buttons
-	 * at the bottom of the options window.
-	 * 
-	 * Save is a ChangeListener which calls onSaveClicked()
-	 * Cancel is also a ChangeListener which calls onCancelClicked()
-	 * @return
-	 */
 	private Table buildOptWinButtons()
 	{
 		Table tbl = new Table();
@@ -382,13 +345,6 @@ public class MenuScreen extends AbstractGameScreen
 		return tbl;
 	}
 
-	/**
-	 * This method initializes the Options window using all above methods.
-	 * pack() method of the window widget makes sure that TableLayout
-	 * recalculates the widget sizes and positions them so that all added
-	 * widgets will fit on screen correctly.
-	 * @return
-	 */
 	private Table buildOptionsWindowLayer()
 	{
 		winOptions = new Window("Options", skinLibgdx);
@@ -428,12 +384,27 @@ public class MenuScreen extends AbstractGameScreen
 		winOptions.setVisible(true);
 	}
 
-	/**
-	 * loadSettings() and saveSettings() are used to translate between
-	 * the widgets and the instance of GamePreferences. 
-	 * 
-	 * Methods starting with "on" contains code to be executed at certain events.
-	 */
+	private void onSaveClicked()
+	{
+		saveSettings();
+		onCancelClicked();
+		AudioManager.instance.onSettingsUpdated();
+	}
+
+	private void onCancelClicked()
+	{
+		btnMenuPlay.setVisible(true);
+		btnMenuOptions.setVisible(true);
+		winOptions.setVisible(false);
+		AudioManager.instance.onSettingsUpdated();
+	}
+
+	private void onCharSkinSelected(int index)
+	{
+		CharacterSkin skin = CharacterSkin.values()[index];
+		imgCharSkin.setColor(skin.getColor());
+	}
+
 	private void loadSettings()
 	{
 		GamePreferences prefs = GamePreferences.instance;
@@ -442,9 +413,11 @@ public class MenuScreen extends AbstractGameScreen
 		sldSound.setValue(prefs.volSound);
 		chkMusic.setChecked(prefs.music);
 		sldMusic.setValue(prefs.volMusic);
-		selCharSkin.setSelectedIndex(prefs.charSkin); // Updates bunny preview image
+		selCharSkin.setSelectedIndex(prefs.charSkin);
 		onCharSkinSelected(prefs.charSkin);
 		chkShowFpsCounter.setChecked(prefs.showFpsCounter);
+		chkUseMonochromeShader.setChecked(prefs.useMonochromeShader);
+
 	}
 
 	private void saveSettings()
@@ -456,30 +429,14 @@ public class MenuScreen extends AbstractGameScreen
 		prefs.volMusic = sldMusic.getValue();
 		prefs.charSkin = selCharSkin.getSelectedIndex();
 		prefs.showFpsCounter = chkShowFpsCounter.isChecked();
+		prefs.useMonochromeShader = chkUseMonochromeShader.isChecked();
 		prefs.save();
 	}
 
-	private void onCharSkinSelected(int index)
+	@Override
+	public InputProcessor getInputProcessor()
 	{
-		CharacterSkin skin = CharacterSkin.values()[index];
-		imgCharSkin.setColor(skin.getColor());
+		return stage;
 	}
 
-	private void onSaveClicked()
-	{
-		saveSettings();
-		onCancelClicked();
-		AudioManager.instance.onSettingsUpdated();
-	}
-
-	/**
-	 * Swaps widgets so that any unsaved changes are discarded.
-	 */
-	private void onCancelClicked()
-	{
-		btnMenuPlay.setVisible(true);
-		btnMenuOptions.setVisible(true);
-		winOptions.setVisible(false);
-		AudioManager.instance.onSettingsUpdated();
-	}
 }

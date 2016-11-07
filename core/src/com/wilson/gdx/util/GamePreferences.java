@@ -17,6 +17,7 @@ public class GamePreferences
 	public float volMusic;
 	public int charSkin;
 	public boolean showFpsCounter;
+	public boolean useMonochromeShader;
 
 	private Preferences prefs;
 
@@ -27,8 +28,7 @@ public class GamePreferences
 	}
 
 	/**
-	 * Tries to find a way to output sound through a 
-	 * valid channel.
+	 * Tries to find a way to output sound through a valid channel.
 	 */
 	public void load()
 	{
@@ -38,10 +38,12 @@ public class GamePreferences
 		volMusic = MathUtils.clamp(prefs.getFloat("volMusic", 0.5f), 0.0f, 1.0f);
 		charSkin = MathUtils.clamp(prefs.getInteger("charSkin", 0), 0, 2);
 		showFpsCounter = prefs.getBoolean("showFpsCounter", false);
+		useMonochromeShader = prefs.getBoolean("useMonochromeShader", false);
 	}
 
 	/**
-	 * Takes values of the public variables and puts them into the map of the preferences file.
+	 * Takes values of the public variables and puts them into the map of the
+	 * preferences file.
 	 */
 	public void save()
 	{
@@ -51,7 +53,8 @@ public class GamePreferences
 		prefs.putFloat("volMusic", volMusic);
 		prefs.putInteger("charSkin", charSkin);
 		prefs.putBoolean("showFpsCounter", showFpsCounter);
-		prefs.flush(); // This writes all changes
+		prefs.putBoolean("useMonochromeShader", useMonochromeShader);
+		prefs.flush();
 	}
 
 }

@@ -31,18 +31,21 @@ public class CameraHelper
 	 * 
 	 * @param deltaTime
 	 */
-	public void update (float deltaTime) {
-		if (!hasTarget()) return;
+	public void update(float deltaTime)
+	{
+		if (!hasTarget())
+			return;
 
 		/**
 		 * lerp() finds unknown values between two points. In this case, we can
-		 * also use it to smooth movement. This allows us to make the rocks bob up
-		 * and down in the water.
+		 * also use it to smooth movement. This allows us to make the rocks bob
+		 * up and down in the water.
 		 * 
-		 * Because this is performed in update(), the movements will be very small.
+		 * Because this is performed in update(), the movements will be very
+		 * small.
 		 */
 		position.lerp(target.position, FOLLOW_SPEED * deltaTime);
-		
+
 		// Prevent camera from moving down too far
 		position.y = Math.max(-1f, position.y);
 	}

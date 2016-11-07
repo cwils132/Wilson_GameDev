@@ -30,10 +30,9 @@ public class Rock extends AbstractGameObject
 	private int length;
 
 	/**
-	 * Makes floating mechanism of rocks correctly initialized.
-	 * Cycle time is randomly picked between 0 and half a
-	 * maximum float cycle time. This allows rocks to be in different
-	 * positions when they initialize.
+	 * Makes floating mechanism of rocks correctly initialized. Cycle time is
+	 * randomly picked between 0 and half a maximum float cycle time. This
+	 * allows rocks to be in different positions when they initialize.
 	 */
 	private final float FLOAT_CYCLE_TIME = 2.0f;
 	private final float FLOAT_AMPLITUDE = 0.25f;
@@ -139,15 +138,16 @@ public class Rock extends AbstractGameObject
 		super.update(deltaTime);
 
 		floatCycleTimeLeft -= deltaTime;
-		if (floatTargetPosition == null)
-			floatTargetPosition = new Vector2(position);
 		if (floatCycleTimeLeft <= 0)
 		{
 			floatCycleTimeLeft = FLOAT_CYCLE_TIME;
 			floatingDownwards = !floatingDownwards;
-			floatTargetPosition.y += FLOAT_AMPLITUDE * (floatingDownwards ? -1 : 1);
+			body.setLinearVelocity(0, FLOAT_AMPLITUDE * (floatingDownwards ? -1 : 1));
+		} else
+		{
+			body.setLinearVelocity(body.getLinearVelocity().scl(0.98f));
+
 		}
-		position.lerp(floatTargetPosition, deltaTime);
 	}
 
 }

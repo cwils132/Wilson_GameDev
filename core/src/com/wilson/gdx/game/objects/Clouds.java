@@ -39,7 +39,7 @@ public class Clouds extends AbstractGameObject
 		public void render(SpriteBatch batch)
 		{
 			TextureRegion reg = regCloud;
-			batch.draw(reg.getTexture(), position.x + origin.x, position.y-2 + origin.y, origin.x, origin.y, dimension.x,
+			batch.draw(reg.getTexture(), position.x + origin.x, position.y + origin.y, origin.x, origin.y, dimension.x,
 			        dimension.y, scale.x, scale.y, rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(),
 			        reg.getRegionHeight(), false, false);
 		}
@@ -60,9 +60,9 @@ public class Clouds extends AbstractGameObject
 		dimension.set(3.0f, 1.5f);
 
 		regClouds = new Array<TextureRegion>();
-		regClouds.add(Assets.instance.levelDecoration.dust01);
-		regClouds.add(Assets.instance.levelDecoration.dust02);
-		regClouds.add(Assets.instance.levelDecoration.dust03);
+		regClouds.add(Assets.instance.levelDecoration.cloud01);
+		regClouds.add(Assets.instance.levelDecoration.cloud02);
+		regClouds.add(Assets.instance.levelDecoration.cloud03);
 
 		int distFac = 5;
 		int numClouds = (int) (length / distFac);
@@ -95,9 +95,10 @@ public class Clouds extends AbstractGameObject
 		pos.y += MathUtils.random(0.0f, 0.2f) * (MathUtils.randomBoolean() ? 1 : -1);
 		cloud.position.set(pos);
 		/**
-		 * This section creates different clouds that utilize different movement.
-		 * Iterates through all clouds and if the cloud is moved off screen,
-		 * it is removed and a new one is added to the right of the level.
+		 * This section creates different clouds that utilize different
+		 * movement. Iterates through all clouds and if the cloud is moved off
+		 * screen, it is removed and a new one is added to the right of the
+		 * level.
 		 */
 		// speed
 		Vector2 speed = new Vector2();
@@ -109,13 +110,16 @@ public class Clouds extends AbstractGameObject
 		cloud.velocity.set(speed);
 		return cloud;
 	}
-	
+
 	@Override
-	public void update (float deltaTime) {
-		for (int i = clouds.size - 1; i >= 0; i--) {
+	public void update(float deltaTime)
+	{
+		for (int i = clouds.size - 1; i >= 0; i--)
+		{
 			Cloud cloud = clouds.get(i);
 			cloud.update(deltaTime);
-			if (cloud.position.x < -10) {
+			if (cloud.position.x < -10)
+			{
 				// cloud moved outside of world.
 				// destroy and spawn new cloud at end of level.
 				clouds.removeIndex(i);
@@ -125,7 +129,8 @@ public class Clouds extends AbstractGameObject
 	}
 
 	@Override
-	public void render (SpriteBatch batch) {
+	public void render(SpriteBatch batch)
+	{
 		for (Cloud cloud : clouds)
 			cloud.render(batch);
 	}

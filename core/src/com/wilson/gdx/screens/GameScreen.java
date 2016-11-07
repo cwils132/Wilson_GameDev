@@ -12,10 +12,6 @@ import com.badlogic.gdx.InputProcessor;
 public class GameScreen extends AbstractGameScreen
 {
 
-	/**
-	 * Since we decoupled the main class from the rest of the program,
-	 * this class now controls the Game screen.
-	 */
 	private static final String TAG = GameScreen.class.getName();
 
 	private WorldController worldController;
@@ -51,17 +47,7 @@ public class GameScreen extends AbstractGameScreen
 	{
 		worldRenderer.resize(width, height);
 	}
-	
-	@Override
-	public InputProcessor getInputProcessor()
-	{
-		return worldController;
-	}
 
-	/**
-	 * This class makes sure the game screen always uses the most recent
-	 * settings chosen.
-	 */
 	@Override
 	public void show()
 	{
@@ -74,6 +60,7 @@ public class GameScreen extends AbstractGameScreen
 	@Override
 	public void hide()
 	{
+		worldController.dispose();
 		worldRenderer.dispose();
 		Gdx.input.setCatchBackKey(false);
 	}
@@ -91,4 +78,11 @@ public class GameScreen extends AbstractGameScreen
 		// Only called on Android!
 		paused = false;
 	}
+
+	@Override
+	public InputProcessor getInputProcessor()
+	{
+		return worldController;
+	}
+
 }
