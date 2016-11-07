@@ -123,6 +123,13 @@ public class Assets implements Disposable, AssetErrorListener
 		}
 	}
 
+	/**
+	 * Creates and lables texture atlas regions so other parts of the program
+	 * can determine which sprites to use to render objects.
+	 * 
+	 * @author Chris
+	 *
+	 */
 	public class AssetLevelDecoration
 	{
 		public final AtlasRegion cloud01;
@@ -131,6 +138,8 @@ public class Assets implements Disposable, AssetErrorListener
 		public final AtlasRegion mountainLeft;
 		public final AtlasRegion mountainRight;
 		public final AtlasRegion waterOverlay;
+		public final AtlasRegion carrot;
+		public final AtlasRegion goal;
 
 		public AssetLevelDecoration(TextureAtlas atlas)
 		{
@@ -140,6 +149,8 @@ public class Assets implements Disposable, AssetErrorListener
 			mountainLeft = atlas.findRegion("mountain_left");
 			mountainRight = atlas.findRegion("mountain_right");
 			waterOverlay = atlas.findRegion("water_overlay");
+			carrot = atlas.findRegion("carrot");
+			goal = atlas.findRegion("goal");
 		}
 	}
 
@@ -212,6 +223,13 @@ public class Assets implements Disposable, AssetErrorListener
 
 	}
 
+	/**
+	 * Sound effects to be played. These are loaded in to memory from the start
+	 * and do not need to be decoded on use.
+	 * 
+	 * @author Chris
+	 *
+	 */
 	public class AssetSounds
 	{
 		public final Sound jump;
@@ -231,7 +249,11 @@ public class Assets implements Disposable, AssetErrorListener
 	}
 
 	/**
-	 * Loads music in to song01 from core.
+	 * Loads music in to song01 from core. Must be decoded on use and is then
+	 * removed from memory when the song is no longer playing.
+	 * 
+	 * Intially set to loop.
+	 * 
 	 * @author Chris
 	 *
 	 */
