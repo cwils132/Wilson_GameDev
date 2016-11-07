@@ -2,8 +2,10 @@ package com.wilson.gdx.game.objects;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 
 /**
  * We are using this abstract class to store basic information about our game
@@ -29,6 +31,12 @@ public abstract class AbstractGameObject
 
 	public Vector2 acceleration;
 	public Rectangle bounds;
+	
+	/**
+	 * Gives all objects a body to be defined for Box2D use.
+	 * At the moment this only includes BunnyHead and Rocks
+	 */
+	public Body body;
 
 	public AbstractGameObject()
 	{
