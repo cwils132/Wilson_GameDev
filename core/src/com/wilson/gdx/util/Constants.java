@@ -19,7 +19,7 @@ public class Constants
 	public static final float VIEWPORT_GUI_HEIGHT = 480.0f;
 
 	// Location of description file for texture atlas
-	public static final String TEXTURE_ATLAS_OBJECTS = "../core/assets/images/theLibrary.pack.atlas";
+	public static final String TEXTURE_ATLAS_OBJECTS = "../core/assets/images/canyonbunny.pack.atlas";
 	public static final String TEXTURE_ATLAS_UI = "../core/assets/images/canyonbunny-ui.atlas";
 	public static final String TEXTURE_ATLAS_LIBGDX_UI = "../core/assets/images/uiskin.atlas";
 
@@ -41,4 +41,18 @@ public class Constants
 	// Location of description file for skins
 	public static final String SKIN_LIBGDX_UI = "../core/assets/images/uiskin.json";
 	public static final String SKIN_CANYONBUNNY_UI = "../core/assets/images/canyonbunny-ui.json";
+
+	// Number of carrots to spawn
+	public static final int CARROTS_SPAWN_MAX = 100;
+
+	// Spawn radius for carrots
+	public static final float CARROTS_SPAWN_RADIUS = 3.5f;
+
+	// Delay after game finished
+	public static final float TIME_DELAY_GAME_FINISHED = 6;
+
+	// Shader
+	public static final String shaderMonochromeVertex = "../core/assets/shaders/monochrome.vs";
+	public static final String shaderMonochromeFragment = "../core/assets/shaders/monochrome.fs";
+
 }
