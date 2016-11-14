@@ -1,41 +1,42 @@
 package com.wilson.gdx.game.objects;
 
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 
-/**
- * We are using this abstract class to store basic information about our game
- * objects without any direct alteration to their functions.
- * 
- * Here we store info about position, dimension, origin, scale factor, and angle
- * of rotation.
- * 
- * @author Chris
- *
- */
 public abstract class AbstractGameObject
 {
+	/**
+	 * We are using this abstract class to store basic information about our game
+	 * objects without any direct alteration to their functions.
+	 * 
+	 * Here we store info about position, dimension, origin, scale factor, and angle
+	 * of rotation.
+	 * 
+	 * @author Chris
+	 *
+	 */
 	public Vector2 position;
 	public Vector2 dimension;
 	public Vector2 origin;
 	public Vector2 scale;
 	public float rotation;
-
+	public Vector2 velocity;
+	public Vector2 terminalVelocity;
+	public Vector2 friction;
+	public Vector2 acceleration;
+	public Rectangle bounds;
+	
 	/**
 	 * Body allows objects to use Box2D physics
 	 */
 	public Body body;
-
-	public Vector2 velocity;
-	public Vector2 terminalVelocity;
-	public Vector2 friction;
-
-	public Vector2 acceleration;
-	public Rectangle bounds;
-
+	
+	public float stateTime;
+	public Animation animation;
 	/**
 	 * Sets variables to be used with movement and physics.
 	 */
@@ -52,7 +53,6 @@ public abstract class AbstractGameObject
 		acceleration = new Vector2();
 		bounds = new Rectangle();
 	}
-
 	/**
 	 * These classes exist so that World Controller can call on it (as it really
 	 * wants to do) but will not actually alter our objects. Because each object
@@ -63,6 +63,7 @@ public abstract class AbstractGameObject
 	 */
 	public void update(float deltaTime)
 	{
+		stateTime += deltaTime;
 		if (body == null)
 		{
 			updateMotionX(deltaTime);
@@ -77,8 +78,6 @@ public abstract class AbstractGameObject
 			rotation = body.getAngle() * MathUtils.radiansToDegrees;
 		}
 	}
-
-	public abstract void render(SpriteBatch batch);
 
 	protected void updateMotionX(float deltaTime)
 	{
@@ -119,5 +118,13 @@ public abstract class AbstractGameObject
 		// positive or negative terminal velocity
 		velocity.y = MathUtils.clamp(velocity.y, -terminalVelocity.y, terminalVelocity.y);
 	}
+
+	public void setAnimation(Animation animation)
+	{
+		this.animation = animation;
+		stateTime = 0;
+	}
+
+	public abstract void render(SpriteBatch batch);
 
 }

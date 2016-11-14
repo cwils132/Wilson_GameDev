@@ -4,15 +4,18 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetErrorListener;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
-import com.badlogic.gdx.utils.Disposable;
-import com.wilson.gdx.util.Constants;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
+import com.wilson.gdx.util.Constants;
+
 
 public class Assets implements Disposable, AssetErrorListener
 {
@@ -37,7 +40,6 @@ public class Assets implements Disposable, AssetErrorListener
 	private Assets()
 	{
 	}
-
 	/**
 	 * Places fonts in our game to show numbers and score.
 	 * 
@@ -52,18 +54,11 @@ public class Assets implements Disposable, AssetErrorListener
 
 		public AssetFonts()
 		{
-			// create three fonts using Libgdx's 15px bitmap font
+			// create three fonts using Libgdx's built-in 15px bitmap font
 			defaultSmall = new BitmapFont(Gdx.files.internal("../core/assets/images/arial-15.fnt"), true);
 			defaultNormal = new BitmapFont(Gdx.files.internal("../core/assets/images/arial-15.fnt"), true);
 			defaultBig = new BitmapFont(Gdx.files.internal("../core/assets/images/arial-15.fnt"), true);
 			// set font sizes
-			/**
-			 * Had to add .getData() in front of .setScale() since setScale()
-			 * has been removed from LibGDX
-			 * 
-			 * This keeps the text in three default sizes for ready use in the
-			 * game.
-			 */
 			defaultSmall.getData().setScale(0.75f);
 			defaultNormal.getData().setScale(1.0f);
 			defaultBig.getData().setScale(2.0f);
@@ -73,7 +68,6 @@ public class Assets implements Disposable, AssetErrorListener
 			defaultBig.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		}
 	}
-
 	/**
 	 * These inner classes define the texture regions of the Texture Atlas so
 	 * the game can find and load them at initialization.
@@ -84,10 +78,35 @@ public class Assets implements Disposable, AssetErrorListener
 	public class AssetBunny
 	{
 		public final AtlasRegion head;
+		public final Animation animNormal;
+		public final Animation animCopterTransform;
+		public final Animation animCopterTransformBack;
+		public final Animation animCopterRotate;
 
 		public AssetBunny(TextureAtlas atlas)
 		{
 			head = atlas.findRegion("bunny_head");
+
+			Array<AtlasRegion> regions = null;
+			AtlasRegion region = null;
+
+			// Animation: Bunny Normal
+			regions = atlas.findRegions("anim_bunny_normal");
+			animNormal = new Animation(1.0f / 10.0f, regions, Animation.PlayMode.LOOP_PINGPONG);
+
+			// Animation: Bunny Copter - knot ears
+			regions = atlas.findRegions("anim_bunny_copter");
+			animCopterTransform = new Animation(1.0f / 10.0f, regions);
+
+			// Animation: Bunny Copter - unknot ears
+			regions = atlas.findRegions("anim_bunny_copter");
+			animCopterTransformBack = new Animation(1.0f / 10.0f, regions, Animation.PlayMode.REVERSED);
+
+			// Animation: Bunny Copter - rotate ears
+			regions = new Array<AtlasRegion>();
+			regions.add(atlas.findRegion("anim_bunny_copter", 4));
+			regions.add(atlas.findRegion("anim_bunny_copter", 5));
+			animCopterRotate = new Animation(1.0f / 15.0f, regions);
 		}
 	}
 
@@ -106,10 +125,18 @@ public class Assets implements Disposable, AssetErrorListener
 	public class AssetGoldCoin
 	{
 		public final AtlasRegion goldCoin;
+		public final Animation animGoldCoin;
 
 		public AssetGoldCoin(TextureAtlas atlas)
 		{
 			goldCoin = atlas.findRegion("item_gold_coin");
+
+			// Animation: Gold Coin
+			Array<AtlasRegion> regions = atlas.findRegions("anim_gold_coin");
+			AtlasRegion region = regions.first();
+			for (int i = 0; i < 10; i++)
+				regions.insert(0, region);
+			animGoldCoin = new Animation(1.0f / 20.0f, regions, Animation.PlayMode.LOOP_PINGPONG);
 		}
 	}
 
@@ -122,7 +149,6 @@ public class Assets implements Disposable, AssetErrorListener
 			feather = atlas.findRegion("item_feather");
 		}
 	}
-
 	/**
 	 * Creates and lables texture atlas regions so other parts of the program
 	 * can determine which sprites to use to render objects.
@@ -153,7 +179,48 @@ public class Assets implements Disposable, AssetErrorListener
 			goal = atlas.findRegion("goal");
 		}
 	}
+	/**
+	 * Sound effects to be played. These are loaded in to memory from the start
+	 * and do not need to be decoded on use.
+	 * 
+	 * @author Chris
+	 *
+	 */
+	public class AssetSounds
+	{
+		public final Sound jump;
+		public final Sound jumpWithFeather;
+		public final Sound pickupCoin;
+		public final Sound pickupFeather;
+		public final Sound liveLost;
 
+		public AssetSounds(AssetManager am)
+		{
+			jump = am.get("../core/assets/sounds/jump.wav", Sound.class);
+			jumpWithFeather = am.get("../core/assets/sounds/jump_with_feather.wav", Sound.class);
+			pickupCoin = am.get("../core/assets/sounds/pickup_coin.wav", Sound.class);
+			pickupFeather = am.get("../core/assets/sounds/pickup_feather.wav", Sound.class);
+			liveLost = am.get("../core/assets/sounds/live_lost.wav", Sound.class);
+		}
+	}
+	/**
+	 * Loads music in to song01 from core. Must be decoded on use and is then
+	 * removed from memory when the song is no longer playing.
+	 * 
+	 * Intially set to loop.
+	 * 
+	 * @author Chris
+	 *
+	 */
+	public class AssetMusic
+	{
+		public final Music song01;
+
+		public AssetMusic(AssetManager am)
+		{
+			song01 = am.get("../core/assets/music/keith303_-_brand_new_highscore.mp3", Music.class);
+		}
+	}
 	/**
 	 * Initializes the Asset Manager for the game. This takes all the regions of
 	 * the atlas and loads them in to the game.
@@ -171,6 +238,7 @@ public class Assets implements Disposable, AssetErrorListener
 		assetManager.setErrorListener(this);
 		// load texture atlas
 		assetManager.load(Constants.TEXTURE_ATLAS_OBJECTS, TextureAtlas.class);
+		// load sounds
 		// load sounds
 		assetManager.load("../core/assets/sounds/jump.wav", Sound.class);
 		assetManager.load("../core/assets/sounds/jump_with_feather.wav", Sound.class);
@@ -223,47 +291,4 @@ public class Assets implements Disposable, AssetErrorListener
 
 	}
 
-	/**
-	 * Sound effects to be played. These are loaded in to memory from the start
-	 * and do not need to be decoded on use.
-	 * 
-	 * @author Chris
-	 *
-	 */
-	public class AssetSounds
-	{
-		public final Sound jump;
-		public final Sound jumpWithFeather;
-		public final Sound pickupCoin;
-		public final Sound pickupFeather;
-		public final Sound liveLost;
-
-		public AssetSounds(AssetManager am)
-		{
-			jump = am.get("../core/assets/sounds/jump.wav", Sound.class);
-			jumpWithFeather = am.get("../core/assets/sounds/jump_with_feather.wav", Sound.class);
-			pickupCoin = am.get("../core/assets/sounds/pickup_coin.wav", Sound.class);
-			pickupFeather = am.get("../core/assets/sounds/pickup_feather.wav", Sound.class);
-			liveLost = am.get("../core/assets/sounds/live_lost.wav", Sound.class);
-		}
-	}
-
-	/**
-	 * Loads music in to song01 from core. Must be decoded on use and is then
-	 * removed from memory when the song is no longer playing.
-	 * 
-	 * Intially set to loop.
-	 * 
-	 * @author Chris
-	 *
-	 */
-	public class AssetMusic
-	{
-		public final Music song01;
-
-		public AssetMusic(AssetManager am)
-		{
-			song01 = am.get("../core/assets/music/keith303_-_brand_new_highscore.mp3", Music.class);
-		}
-	}
 }

@@ -1,16 +1,16 @@
 package com.wilson.gdx.game.objects;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.wilson.gdx.game.Assets;
+import com.wilson.gdx.util.AudioManager;
 import com.wilson.gdx.util.Constants;
 import com.wilson.gdx.util.GamePreferences;
 import com.wilson.gdx.util.CharacterSkin;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.ParticleEffect;
-import com.badlogic.gdx.math.MathUtils;
-import com.wilson.gdx.util.AudioManager;
 
 public class BunnyHead extends AbstractGameObject
 {
@@ -20,8 +20,6 @@ public class BunnyHead extends AbstractGameObject
 	private final float JUMP_TIME_MAX = 0.3f;
 	private final float JUMP_TIME_MIN = 0.1f;
 	private final float JUMP_TIME_OFFSET_FLYING = JUMP_TIME_MAX - 0.018f;
-
-	public ParticleEffect dustParticles = new ParticleEffect();
 
 	public enum VIEW_DIRECTION
 	{
@@ -33,24 +31,25 @@ public class BunnyHead extends AbstractGameObject
 		GROUNDED, FALLING, JUMP_RISING, JUMP_FALLING
 	}
 
-	/**
-	 * Variables used to define the bunny head during runtime.
-	 */
-	private TextureRegion regHead;
+	private Animation animNormal;
+	private Animation animCopterTransform;
+	private Animation animCopterTransformBack;
+	private Animation animCopterRotate;
 
 	public VIEW_DIRECTION viewDirection;
 
-	public float timeJumping;
 	public JUMP_STATE jumpState;
+	public float timeJumping;
 
 	public boolean hasFeatherPowerup;
 	public float timeLeftFeatherPowerup;
+
+	public ParticleEffect dustParticles = new ParticleEffect();
 
 	public BunnyHead()
 	{
 		init();
 	}
-
 	/**
 	 * Initializes the BunnyHead object and sets the origin. Also sets
 	 * terminalVelocity of the object, friction, and acceleration. All of which
@@ -66,7 +65,11 @@ public class BunnyHead extends AbstractGameObject
 	{
 		dimension.set(1, 1);
 
-		regHead = Assets.instance.bunny.head;
+		animNormal = Assets.instance.bunny.animNormal;
+		animCopterTransform = Assets.instance.bunny.animCopterTransform;
+		animCopterTransformBack = Assets.instance.bunny.animCopterTransformBack;
+		animCopterRotate = Assets.instance.bunny.animCopterRotate;
+		setAnimation(animNormal);
 
 		// Center image on game object
 		origin.set(dimension.x / 2, dimension.y / 2);
@@ -94,7 +97,6 @@ public class BunnyHead extends AbstractGameObject
 		dustParticles.load(Gdx.files.internal("../core/assets/particles/dust.pfx"),
 		        Gdx.files.internal("../core/assets/particles"));
 	}
-
 	/**
 	 * Updates the screen as you move, the feather timer counts down, etc.
 	 */
@@ -108,17 +110,49 @@ public class BunnyHead extends AbstractGameObject
 		}
 		if (timeLeftFeatherPowerup > 0)
 		{
+			if (animation == animCopterTransformBack)
+			{
+				// Restart "Transform" animation if another feather power-up
+				// was picked up during "TransformBack" animation. Otherwise,
+				// the "TransformBack" animation would be stuck while the
+				// power-up is still active.
+				setAnimation(animCopterTransform);
+			}
 			timeLeftFeatherPowerup -= deltaTime;
 			if (timeLeftFeatherPowerup < 0)
 			{
 				// disable power-up
 				timeLeftFeatherPowerup = 0;
 				setFeatherPowerup(false);
+				setAnimation(animCopterTransformBack);
 			}
 		}
 		dustParticles.update(deltaTime);
-	}
 
+		// Change animation state according to feather power-up
+		if (hasFeatherPowerup)
+		{
+			if (animation == animNormal)
+			{
+				setAnimation(animCopterTransform);
+			} else if (animation == animCopterTransform)
+			{
+				if (animation.isAnimationFinished(stateTime))
+					setAnimation(animCopterRotate);
+			}
+		} else
+		{
+			if (animation == animCopterRotate)
+			{
+				if (animation.isAnimationFinished(stateTime))
+					setAnimation(animCopterTransformBack);
+			} else if (animation == animCopterTransformBack)
+			{
+				if (animation.isAnimationFinished(stateTime))
+					setAnimation(animNormal);
+			}
+		}
+	}
 	/**
 	 * Controls the jumping behavior for the game and redraws while active. Also
 	 * controls falling.
@@ -130,6 +164,11 @@ public class BunnyHead extends AbstractGameObject
 		{
 		case GROUNDED:
 			jumpState = JUMP_STATE.FALLING;
+			if (velocity.x != 0)
+			{
+				dustParticles.setPosition(position.x + dimension.x / 2, position.y);
+				dustParticles.start();
+			}
 			break;
 		case JUMP_RISING:
 			// Keep track of jump time
@@ -159,7 +198,6 @@ public class BunnyHead extends AbstractGameObject
 			super.updateMotionY(deltaTime);
 		}
 	}
-
 	/**
 	 * Changes color of the bunny to yellow when the feather is collected.
 	 * Otherwise just draws the head from the region of the atlas.
@@ -175,22 +213,24 @@ public class BunnyHead extends AbstractGameObject
 		// Apply Skin Color
 		batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
 
-		// Set special color when game object has a feather power-up
-		if (hasFeatherPowerup)
+		float dimCorrectionX = 0;
+		float dimCorrectionY = 0;
+		if (animation != animNormal)
 		{
-			batch.setColor(1.0f, 0.8f, 0.0f, 1.0f);
+			dimCorrectionX = 0.05f;
+			dimCorrectionY = 0.2f;
 		}
 
 		// Draw image
-		reg = regHead;
-		batch.draw(reg.getTexture(), position.x, position.y, origin.x, origin.y, dimension.x, dimension.y, scale.x,
-		        scale.y, rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(), reg.getRegionHeight(),
-		        viewDirection == VIEW_DIRECTION.LEFT, false);
+		reg = animation.getKeyFrame(stateTime, true);
+
+		batch.draw(reg.getTexture(), position.x, position.y, origin.x, origin.y, dimension.x + dimCorrectionX,
+		        dimension.y + dimCorrectionY, scale.x, scale.y, rotation, reg.getRegionX(), reg.getRegionY(),
+		        reg.getRegionWidth(), reg.getRegionHeight(), viewDirection == VIEW_DIRECTION.LEFT, false);
 
 		// Reset color to white
 		batch.setColor(1, 1, 1, 1);
 	}
-
 	/**
 	 * Sets the duration of the feather powerup.
 	 * 
@@ -204,7 +244,6 @@ public class BunnyHead extends AbstractGameObject
 			timeLeftFeatherPowerup = Constants.ITEM_FEATHER_POWERUP_DURATION;
 		}
 	}
-
 	/**
 	 * Returns true if the feather is picked up. Otherwise hasFeatherPowerUp is
 	 * false and also returns to false after the time runs out on the power up.
@@ -215,7 +254,6 @@ public class BunnyHead extends AbstractGameObject
 	{
 		return hasFeatherPowerup && timeLeftFeatherPowerup > 0;
 	}
-
 	/**
 	 * Controls the jumping command. jumpKeyPressed means if the spacebar is
 	 * pressed, react accordingly.
@@ -233,9 +271,6 @@ public class BunnyHead extends AbstractGameObject
 		case GROUNDED: // Character is standing on a platform
 			if (jumpKeyPressed)
 			{
-				/**
-				 * Plays jump sound when jump key is pressed
-				 */
 				AudioManager.instance.play(Assets.instance.sounds.jump);
 				// Start counting jump time from the beginning
 				timeJumping = 0;

@@ -24,10 +24,6 @@ public class Goal extends AbstractGameObject
 		origin.set(dimension.x / 2.0f, 0.0f);
 	}
 
-	/**
-	 * Creates an infinitely tall box for the goal so that the player cannot
-	 * accidentally miss it.
-	 */
 	public void render(SpriteBatch batch)
 	{
 		TextureRegion reg = null;

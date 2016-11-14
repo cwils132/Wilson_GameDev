@@ -25,9 +25,6 @@ public class Carrot extends AbstractGameObject
 		origin.set(dimension.x / 2, dimension.y / 2);
 	}
 
-	/**
-	 * Renders a carrot using a texture atlas region
-	 */
 	public void render(SpriteBatch batch)
 	{
 		TextureRegion reg = null;
