@@ -1,19 +1,13 @@
 package com.wilson.gdx.screens;
 
-import com.badlogic.gdx.Game;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.wilson.gdx.game.Assets;
-import com.badlogic.gdx.InputProcessor;
 
 public abstract class AbstractGameScreen implements Screen
 {
 
-	/**
-	 * This abstract class provides methods for GameScreen and MenuScreen. Keeps
-	 * WorldController and WorldRenderer from being directly used by the main
-	 * class.
-	 */
 	protected DirectedGame game;
 
 	public AbstractGameScreen(DirectedGame game)

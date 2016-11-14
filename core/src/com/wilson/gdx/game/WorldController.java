@@ -5,21 +5,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Input.Peripheral;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.utils.Array;
-import com.wilson.gdx.util.CameraHelper;
-import com.wilson.gdx.game.objects.Rock;
-import com.wilson.gdx.util.Constants;
-import com.badlogic.gdx.Game;
-import com.wilson.gdx.screens.MenuScreen;
-import com.wilson.gdx.screens.DirectedGame;
 import com.badlogic.gdx.math.Interpolation;
-import com.wilson.gdx.screens.transitions.ScreenTransition;
-import com.wilson.gdx.screens.transitions.ScreenTransitionSlide;
-import com.wilson.gdx.util.AudioManager;
-
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -27,15 +15,21 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
-import com.wilson.gdx.game.objects.Carrot;
 import com.badlogic.gdx.utils.Disposable;
-
-import com.badlogic.gdx.math.Rectangle;
 import com.wilson.gdx.game.objects.BunnyHead;
 import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
+import com.wilson.gdx.game.objects.Carrot;
 import com.wilson.gdx.game.objects.Feather;
 import com.wilson.gdx.game.objects.GoldCoin;
 import com.wilson.gdx.game.objects.Rock;
+import com.wilson.gdx.screens.DirectedGame;
+import com.wilson.gdx.screens.MenuScreen;
+import com.wilson.gdx.screens.transitions.ScreenTransition;
+import com.wilson.gdx.screens.transitions.ScreenTransitionSlide;
+import com.wilson.gdx.util.AudioManager;
+import com.wilson.gdx.util.CameraHelper;
+import com.wilson.gdx.util.Constants;
+
 
 public class WorldController extends InputAdapter implements Disposable
 {
@@ -49,6 +43,7 @@ public class WorldController extends InputAdapter implements Disposable
 	public int score;
 	public float scoreVisual;
 	private boolean goalReached;
+	private boolean accelerometerAvailable;
 
 	public CameraHelper cameraHelper;
 
@@ -58,9 +53,6 @@ public class WorldController extends InputAdapter implements Disposable
 
 	private float timeLeftGameOverDelay;
 
-	/**
-	 * Creates a Box2D world for the physics engine
-	 */
 	public World b2world;
 
 	public WorldController(DirectedGame game)
@@ -71,6 +63,7 @@ public class WorldController extends InputAdapter implements Disposable
 
 	private void init()
 	{
+		accelerometerAvailable = Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer);
 		cameraHelper = new CameraHelper();
 		lives = Constants.LIVES_START;
 		livesVisual = lives;
@@ -87,7 +80,6 @@ public class WorldController extends InputAdapter implements Disposable
 		cameraHelper.setTarget(level.bunnyHead);
 		initPhysics();
 	}
-
 	/**
 	 * Creates the physics for Box2D in the game. Gives rocks a body polygon
 	 * shape for use in collision detection with BunnyHead.
@@ -116,7 +108,6 @@ public class WorldController extends InputAdapter implements Disposable
 			polygonShape.dispose();
 		}
 	}
-
 	/**
 	 * Updates the game for use in tracking the camera, playing sounds, checking
 	 * if the player fell in water, updating the level, and other various tasks.
@@ -155,7 +146,6 @@ public class WorldController extends InputAdapter implements Disposable
 		if (scoreVisual < score)
 			scoreVisual = Math.min(score, scoreVisual + 250 * deltaTime);
 	}
-
 	/**
 	 * Check to see if the game is over.
 	 * 
@@ -165,7 +155,6 @@ public class WorldController extends InputAdapter implements Disposable
 	{
 		return lives < 0;
 	}
-
 	/**
 	 * If the player falls, return the player to the beginning position of the
 	 * level.
@@ -176,7 +165,6 @@ public class WorldController extends InputAdapter implements Disposable
 	{
 		return level.bunnyHead.position.y < -5;
 	}
-
 	/**
 	 * Monitors for various collision situations and calls to the appropriate
 	 * methods to execute actions.
@@ -231,7 +219,6 @@ public class WorldController extends InputAdapter implements Disposable
 				onCollisionBunnyWithGoal();
 		}
 	}
-
 	/**
 	 * Determines collision with rocks so the BunnyHead does not pass through
 	 * the rocks and fall when it is not supposed to.
@@ -269,7 +256,6 @@ public class WorldController extends InputAdapter implements Disposable
 			break;
 		}
 	}
-
 	/**
 	 * If the player collides with a coin the score is increased, a sound is
 	 * played, and the coin object is destroyed.
@@ -283,7 +269,6 @@ public class WorldController extends InputAdapter implements Disposable
 		score += goldcoin.getScore();
 		Gdx.app.log(TAG, "Gold coin collected");
 	}
-
 	/**
 	 * If the character collides with a feather the feather is destroyed, the
 	 * player gains a powerup, a sound is played, and score is increased.
@@ -298,7 +283,6 @@ public class WorldController extends InputAdapter implements Disposable
 		level.bunnyHead.setFeatherPowerup(true);
 		Gdx.app.log(TAG, "Feather collected");
 	}
-
 	/**
 	 * If the player comes in contact with the Goal object carrots are spawned
 	 * and rained down based on the players location.
@@ -311,7 +295,6 @@ public class WorldController extends InputAdapter implements Disposable
 		centerPosBunnyHead.x += level.bunnyHead.bounds.width;
 		spawnCarrots(centerPosBunnyHead, Constants.CARROTS_SPAWN_MAX, Constants.CARROTS_SPAWN_RADIUS);
 	}
-
 	/**
 	 * Handles debug movement with the camera to view level.
 	 * 
@@ -353,7 +336,6 @@ public class WorldController extends InputAdapter implements Disposable
 		if (Gdx.input.isKeyPressed(Keys.SLASH))
 			cameraHelper.setZoom(1);
 	}
-
 	/**
 	 * Moves character if left arrow button is pressed. If right arrow is
 	 * pressed, move right. Space jumps.
@@ -373,7 +355,30 @@ public class WorldController extends InputAdapter implements Disposable
 				level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
 			} else
 			{
-				level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
+				// Use accelerometer for movement if available
+				if (accelerometerAvailable)
+				{
+					// normalize accelerometer values from [-10, 10] to [-1, 1]
+					// which translate to rotations of [-90, 90] degrees
+					float amount = Gdx.input.getAccelerometerY() / 10.0f;
+					amount *= 90.0f;
+					// is angle of rotation inside dead zone?
+					if (Math.abs(amount) < Constants.ACCEL_ANGLE_DEAD_ZONE)
+					{
+						amount = 0;
+					} else
+					{
+						// use the defined max angle of rotation instead of
+						// the full 90 degrees for maximum velocity
+						amount /= Constants.ACCEL_MAX_ANGLE_MAX_MOVEMENT;
+					}
+					level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x * amount;
+				}
+				// Execute auto-forward movement on non-desktop platform
+				else if (Gdx.app.getType() != ApplicationType.Desktop)
+				{
+					level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
+				}
 			}
 
 			// Bunny Jump
@@ -428,7 +433,6 @@ public class WorldController extends InputAdapter implements Disposable
 		if (b2world != null)
 			b2world.dispose();
 	}
-
 	/**
 	 * Spawns carrots when the player reaches the goal. The amount of carrots
 	 * generated is determined by a cariable in the Constants class.

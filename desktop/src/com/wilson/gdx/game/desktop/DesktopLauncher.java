@@ -11,6 +11,7 @@ public class DesktopLauncher
 	private static boolean rebuildAtlas = false;
 	private static boolean drawDebugOutline = false;
 
+
 	/**
 	 * Class is mostly not touched. We only need it to run the Desktop version
 	 * of the game.
@@ -28,22 +29,16 @@ public class DesktopLauncher
 			Settings settings = new Settings();
 			settings.maxWidth = 1024;
 			settings.maxHeight = 1024;
-			settings.duplicatePadding = false;
 			settings.debug = drawDebugOutline;
-			/**
-			 * process() takes three inputs: Folder containing the images,
-			 * destination folder, and description file they must be written in
-			 * that order.
-			 */
 			TexturePacker.process(settings, "assets-raw/images", "../core/assets/images", "canyonbunny.pack");
 			TexturePacker.process(settings, "assets-raw/images-ui", "../core/assets/images", "canyonbunny-ui.pack");
 		}
 
-		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.title = "Canyon Bunny";
-		config.width = 800;
-		config.height = 480;
+		LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
+		cfg.title = "CanyonBunny";
+		cfg.width = 800;
+		cfg.height = 480;
 
-		new LwjglApplication(new WilsonGdxGame(), config);
+		new LwjglApplication(new WilsonGdxGame(), cfg);
 	}
 }

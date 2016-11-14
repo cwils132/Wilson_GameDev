@@ -7,11 +7,10 @@ public class AudioManager
 {
 
 	/**
-	 * Provides methods for other areas of the program (Assets, BunnyHead,
-	 * WorldController) to call and play sounds and music.
+	 * Provides methods for other areas of the program (Assets, BunnyHead, WorldController)
+	 * to call and play sounds and music.
 	 * 
-	 * Also used to store volume preferences when changes are made in menu
-	 * screen.
+	 * Also used to store volume preferences when changes are made in menu screen.
 	 */
 	public static final AudioManager instance = new AudioManager();
 

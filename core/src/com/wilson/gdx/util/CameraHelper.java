@@ -24,26 +24,11 @@ public class CameraHelper
 		zoom = 1.0f;
 	}
 
-	/**
-	 * The game has to redraw several hundred times a second. We use update to
-	 * make sure it keeps track of the time properly and updates where things
-	 * are on the screen accordingly.
-	 * 
-	 * @param deltaTime
-	 */
 	public void update(float deltaTime)
 	{
 		if (!hasTarget())
 			return;
 
-		/**
-		 * lerp() finds unknown values between two points. In this case, we can
-		 * also use it to smooth movement. This allows us to make the rocks bob
-		 * up and down in the water.
-		 * 
-		 * Because this is performed in update(), the movements will be very
-		 * small.
-		 */
 		position.lerp(target.position, FOLLOW_SPEED * deltaTime);
 
 		// Prevent camera from moving down too far
@@ -90,22 +75,11 @@ public class CameraHelper
 		return target != null;
 	}
 
-	/**
-	 * If we have a game object targeted, we know to follow it with the camera.
-	 * 
-	 * @param target
-	 * @return
-	 */
 	public boolean hasTarget(AbstractGameObject target)
 	{
 		return hasTarget() && this.target.equals(target);
 	}
 
-	/**
-	 * Aids in camera movement to follow the target.
-	 * 
-	 * @param camera
-	 */
 	public void applyTo(OrthographicCamera camera)
 	{
 		camera.position.x = position.x;

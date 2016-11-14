@@ -27,9 +27,6 @@ public class GamePreferences
 		prefs = Gdx.app.getPreferences(Constants.PREFERENCES);
 	}
 
-	/**
-	 * Tries to find a way to output sound through a valid channel.
-	 */
 	public void load()
 	{
 		sound = prefs.getBoolean("sound", true);
@@ -41,10 +38,6 @@ public class GamePreferences
 		useMonochromeShader = prefs.getBoolean("useMonochromeShader", false);
 	}
 
-	/**
-	 * Takes values of the public variables and puts them into the map of the
-	 * preferences file.
-	 */
 	public void save()
 	{
 		prefs.putBoolean("sound", sound);

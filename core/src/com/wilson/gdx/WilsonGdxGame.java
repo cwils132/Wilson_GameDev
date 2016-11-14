@@ -1,27 +1,21 @@
 package com.wilson.gdx;
 
 import com.badlogic.gdx.Application;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.wilson.gdx.game.Assets;
-import com.wilson.gdx.screens.MenuScreen;
-import com.wilson.gdx.screens.DirectedGame;
 import com.badlogic.gdx.math.Interpolation;
+import com.wilson.gdx.game.Assets;
+import com.wilson.gdx.screens.DirectedGame;
+import com.wilson.gdx.screens.MenuScreen;
 import com.wilson.gdx.screens.transitions.ScreenTransition;
 import com.wilson.gdx.screens.transitions.ScreenTransitionSlice;
 import com.wilson.gdx.util.AudioManager;
 import com.wilson.gdx.util.GamePreferences;
 
+
 public class WilsonGdxGame extends DirectedGame
 {
-	/**
-	 * Immediately creates an instance of menu screen and creates an asset
-	 * manager.
-	 * 
-	 * Also loads the background music through AudioManager and plays from this
-	 * class so that is runs regardless of game state.
-	 */
+
 	@Override
 	public void create()
 	{

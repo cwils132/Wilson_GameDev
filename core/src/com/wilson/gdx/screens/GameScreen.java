@@ -1,13 +1,12 @@
 package com.wilson.gdx.screens;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
 import com.wilson.gdx.game.WorldController;
 import com.wilson.gdx.game.WorldRenderer;
 import com.wilson.gdx.util.GamePreferences;
-import com.badlogic.gdx.InputProcessor;
+
 
 public class GameScreen extends AbstractGameScreen
 {

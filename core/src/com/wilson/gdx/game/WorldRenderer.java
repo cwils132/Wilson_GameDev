@@ -2,22 +2,20 @@ package com.wilson.gdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.wilson.gdx.util.Constants;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.wilson.gdx.util.GamePreferences;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.utils.GdxRuntimeException;
+
 
 public class WorldRenderer implements Disposable
 {
-
 	/**
 	 * This class will handle all creation of rendered game objects. When we are
 	 * done, it will also dispose of them for us.
@@ -26,7 +24,8 @@ public class WorldRenderer implements Disposable
 	 * this game on WorldRenderers instantiation.
 	 */
 	private static final String TAG = WorldRenderer.class.getName();
-	private static final boolean DEBUG_DRAW_BOX2D_WORLD = false;
+
+	private static final boolean DEBUG_DRAW_BOX2D_WORLD = true;
 
 	private OrthographicCamera camera;
 	private OrthographicCamera cameraGUI;
@@ -44,7 +43,6 @@ public class WorldRenderer implements Disposable
 		this.worldController = worldController;
 		init();
 	}
-
 	/**
 	 * Creates our SpriteBatch for the game. This does not actually draw them to
 	 * the screen yet. We also initialize the OrthographicCamera and set its
@@ -78,7 +76,6 @@ public class WorldRenderer implements Disposable
 		renderWorld(batch);
 		renderGui(batch);
 	}
-
 	/**
 	 * Initiates the world rendering and calls to the other classes to perform
 	 * their duties.
@@ -103,7 +100,6 @@ public class WorldRenderer implements Disposable
 			b2debugRenderer.render(worldController.b2world, camera.combined);
 		}
 	}
-
 	/**
 	 * This creates the GUI. To do this is makes a camera specifically for GUI
 	 * elements that will not move position on our screen when the character
@@ -123,17 +119,13 @@ public class WorldRenderer implements Disposable
 		// draw extra lives icon + text (anchored to top right edge)
 		renderGuiExtraLive(batch);
 		// draw FPS text (anchored to bottom right edge)
-		renderGuiFpsCounter(batch);
 		if (GamePreferences.instance.showFpsCounter)
-		{
 			renderGuiFpsCounter(batch);
-		}
 		// draw game over text
 		renderGuiGameOverMessage(batch);
 
 		batch.end();
 	}
-
 	/**
 	 * Adds the score to our game
 	 * 
@@ -152,14 +144,32 @@ public class WorldRenderer implements Disposable
 			offsetX += MathUtils.sinDeg(shakeAlpha * 2.2f) * shakeDist;
 			offsetY += MathUtils.sinDeg(shakeAlpha * 2.9f) * shakeDist;
 		}
-		/**
-		 * scoreVisuals cast to int to cut off decimal values. Resulting score
-		 * is what is displayed in the GUI.
-		 */
 		batch.draw(Assets.instance.goldCoin.goldCoin, x, y, offsetX, offsetY, 100, 100, 0.35f, -0.35f, 0);
 		Assets.instance.fonts.defaultBig.draw(batch, "" + (int) worldController.scoreVisual, x + 75, y + 37);
 	}
 
+	private void renderGuiFeatherPowerup(SpriteBatch batch)
+	{
+		float x = -15;
+		float y = 30;
+		float timeLeftFeatherPowerup = worldController.level.bunnyHead.timeLeftFeatherPowerup;
+		if (timeLeftFeatherPowerup > 0)
+		{
+			// Start icon fade in/out if the left power-up time
+			// is less than 4 seconds. The fade interval is set
+			// to 5 changes per second.
+			if (timeLeftFeatherPowerup < 4)
+			{
+				if (((int) (timeLeftFeatherPowerup * 5) % 2) != 0)
+				{
+					batch.setColor(1, 1, 1, 0.5f);
+				}
+			}
+			batch.draw(Assets.instance.feather.feather, x, y, 50, 50, 100, 100, 0.35f, -0.35f, 0);
+			batch.setColor(1, 1, 1, 1);
+			Assets.instance.fonts.defaultSmall.draw(batch, "" + (int) timeLeftFeatherPowerup, x + 60, y + 57);
+		}
+	}
 	/**
 	 * Shows bunny heads depicting our total lives left
 	 * 
@@ -191,30 +201,6 @@ public class WorldRenderer implements Disposable
 			batch.setColor(1, 1, 1, 1);
 		}
 	}
-
-	private void renderGuiFeatherPowerup(SpriteBatch batch)
-	{
-		float x = -15;
-		float y = 30;
-		float timeLeftFeatherPowerup = worldController.level.bunnyHead.timeLeftFeatherPowerup;
-		if (timeLeftFeatherPowerup > 0)
-		{
-			// Start icon fade in/out if the left power-up time
-			// is less than 4 seconds. The fade interval is set
-			// to 5 changes per second.
-			if (timeLeftFeatherPowerup < 4)
-			{
-				if (((int) (timeLeftFeatherPowerup * 5) % 2) != 0)
-				{
-					batch.setColor(1, 1, 1, 0.5f);
-				}
-			}
-			batch.draw(Assets.instance.feather.feather, x, y, 50, 50, 100, 100, 0.35f, -0.35f, 0);
-			batch.setColor(1, 1, 1, 1);
-			Assets.instance.fonts.defaultSmall.draw(batch, "" + (int) timeLeftFeatherPowerup, x + 60, y + 57);
-		}
-	}
-
 	/**
 	 * Keeps track of our FPS
 	 * 
@@ -256,7 +242,6 @@ public class WorldRenderer implements Disposable
 			fontGameOver.setColor(1, 1, 1, 1);
 		}
 	}
-
 	/**
 	 * Lets us resize the camera viewport, effectively zooming out.
 	 * 
@@ -272,7 +257,6 @@ public class WorldRenderer implements Disposable
 		cameraGUI.position.set(cameraGUI.viewportWidth / 2, cameraGUI.viewportHeight / 2, 0);
 		cameraGUI.update();
 	}
-
 	/**
 	 * Destroys sprites when game is closed. Also destroys monochrome shader.
 	 */
