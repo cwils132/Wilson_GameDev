@@ -1,5 +1,6 @@
 package com.wilson.gdx.game.objects;
 
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.MathUtils;
@@ -31,10 +32,13 @@ public abstract class AbstractGameObject
 
 	public Vector2 acceleration;
 	public Rectangle bounds;
-	
+
+	public float stateTime;
+	public Animation animation;
+
 	/**
-	 * Gives all objects a body to be defined for Box2D use.
-	 * At the moment this only includes BunnyHead and Rocks
+	 * Gives all objects a body to be defined for Box2D use. At the moment this
+	 * only includes BunnyHead and Rocks
 	 */
 	public Body body;
 
@@ -52,6 +56,12 @@ public abstract class AbstractGameObject
 		bounds = new Rectangle();
 	}
 
+	public void setAnimation(Animation animation)
+	{
+		this.animation = animation;
+		stateTime = 0;
+	}
+
 	/**
 	 * These classes exist so that World Controller can call on it (as it really
 	 * wants to do) but will not actually alter our objects. Because each object
@@ -62,6 +72,7 @@ public abstract class AbstractGameObject
 	 */
 	public void update(float deltaTime)
 	{
+		stateTime += deltaTime;
 		updateMotionX(deltaTime);
 		updateMotionY(deltaTime);
 		// Move to new position

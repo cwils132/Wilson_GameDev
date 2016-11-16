@@ -16,6 +16,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.wilson.gdx.util.AudioManager;
 import com.wilson.gdx.util.GamePreferences;
 
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.utils.Array;
+
 public class Assets implements Disposable, AssetErrorListener
 {
 
@@ -31,7 +34,7 @@ public class Assets implements Disposable, AssetErrorListener
 	public AssetRedBook redBook;
 	public AssetFeather feather;
 	public AssetLevelDecoration levelDecoration;
-	
+
 	public AssetSounds sounds;
 	public AssetMusic music;
 
@@ -108,10 +111,20 @@ public class Assets implements Disposable, AssetErrorListener
 	public class AssetRedBook
 	{
 		public final AtlasRegion book;
+		public final Animation animRedBook;
 
 		public AssetRedBook(TextureAtlas atlas)
 		{
 			book = atlas.findRegion("book");
+
+			// Animation: Red book
+			Array<AtlasRegion> regions = atlas.findRegions("anim_book");
+			AtlasRegion region = regions.first();
+			for (int i = 0; i < 10; i++)
+			{
+				regions.insert(0, region);
+			}
+			animRedBook = new Animation(1.0f / 20.f, regions, Animation.PlayMode.LOOP_PINGPONG);
 		}
 	}
 
@@ -199,7 +212,7 @@ public class Assets implements Disposable, AssetErrorListener
 		sounds = new AssetSounds(assetManager);
 		music = new AssetMusic(assetManager);
 	}
-	
+
 	public class AssetSounds
 	{
 		public final Sound jump;
@@ -220,6 +233,7 @@ public class Assets implements Disposable, AssetErrorListener
 
 	/**
 	 * Loads music in to song01 from core.
+	 * 
 	 * @author Chris
 	 *
 	 */
