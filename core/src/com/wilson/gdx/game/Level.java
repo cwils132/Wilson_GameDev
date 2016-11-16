@@ -196,6 +196,11 @@ public class Level
 		Gdx.app.debug(TAG, "level '" + filename + "' loaded");
 	}
 
+	/**
+	 * Draws objects to screen
+	 * 
+	 * @param batch
+	 */
 	public void render(SpriteBatch batch)
 	{
 		// Draw Mountains
@@ -217,6 +222,11 @@ public class Level
 		clouds.render(batch);
 	}
 
+	/**
+	 * Updates game to properly render objects in the level.
+	 * 
+	 * @param deltaTime
+	 */
 	public void update(float deltaTime)
 	{
 		// Bunny Head

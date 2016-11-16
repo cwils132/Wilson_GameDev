@@ -41,11 +41,4 @@ public class Constants
 	// Location of description file for skins
 	public static final String SKIN_LIBGDX_UI = "../core/assets/images/uiskin.json";
 	public static final String SKIN_CANYONBUNNY_UI = "../core/assets/images/canyonbunny-ui.json";
-	
-	/**
-	 * Used to define blocks using Box2D
-	 */
-	// Blocks
-	public static final int BLOCKS_SPAWN_MAX = 2;
-	public static final float BLOCKS_SPAWN_RADIUS = 3.5f;
 }

@@ -4,10 +4,13 @@ import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
 import com.wilson.gdx.util.CameraHelper;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.util.Constants;
@@ -28,6 +31,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.wilson.gdx.game.objects.AbstractGameObject;
 import com.wilson.gdx.game.objects.BunnyHead;
 import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
+import com.wilson.gdx.game.objects.BunnyHead.VIEW_DIRECTION;
 import com.wilson.gdx.game.objects.Feather;
 import com.wilson.gdx.game.objects.GoldCoin;
 import com.wilson.gdx.game.objects.Rock;
@@ -42,9 +46,9 @@ public class WorldController extends InputAdapter
 	public int score;
 	public float livesVisual; // decreases when lives decrease
 	public float scoreVisual;
-	
-	public Array<AbstractGameObject> objectsToRemove;
-	
+
+	public Array<AbstractGameObject> objectsToRemove = new Array<AbstractGameObject>();
+
 	// Box2D Collisions
 	public World myWorld;
 
@@ -66,6 +70,7 @@ public class WorldController extends InputAdapter
 
 	private void init()
 	{
+		objectsToRemove = new Array<AbstractGameObject>();
 		Gdx.input.setInputProcessor(this);
 		cameraHelper = new CameraHelper();
 		lives = Constants.LIVES_START;
@@ -73,21 +78,22 @@ public class WorldController extends InputAdapter
 		timeLeftGameOverDelay = 0;
 		initLevel();
 	}
-	
+
 	/**
-	 * Adds physics in to the game to be initialized at the start through initLevel();.
-	 * Defines a KinematicBody for rocks to be used to if collision occurs the rocks
-	 * do not let the player fall through.
+	 * Adds physics in to the game to be initialized at the start through
+	 * initLevel();. Defines a KinematicBody for rocks to be used to if
+	 * collision occurs the rocks do not let the player fall through.
 	 * 
 	 * Defines a polygon shape for the rocks and a listener for world to monitor
-	 * if collisions occur. If a collision does occur then CollisionHandler is called.
+	 * if collisions occur. If a collision does occur then CollisionHandler is
+	 * called.
 	 */
 	private void initPhysics()
 	{
 		if (myWorld != null)
 			myWorld.dispose();
 		myWorld = new World(new Vector2(0, -9.81f), true);
-		myWorld.setContactListener(new CollisionHandler(this));  // Not in the book
+		myWorld.setContactListener(new CollisionHandler(this));
 		Vector2 origin = new Vector2();
 		for (Rock pieceOfLand : level.rocks)
 		{
@@ -95,13 +101,13 @@ public class WorldController extends InputAdapter
 			bodyDef.position.set(pieceOfLand.position);
 			bodyDef.type = BodyType.KinematicBody;
 			Body body = myWorld.createBody(bodyDef);
-			//body.setType(BodyType.DynamicBody);
 			body.setUserData(pieceOfLand);
 			pieceOfLand.body = body;
 			PolygonShape polygonShape = new PolygonShape();
 			origin.x = pieceOfLand.bounds.width / 2.0f;
 			origin.y = pieceOfLand.bounds.height / 2.0f;
-			polygonShape.setAsBox(pieceOfLand.bounds.width / 2.0f, (pieceOfLand.bounds.height-0.04f) / 2.0f, origin, 0);
+			polygonShape.setAsBox(pieceOfLand.bounds.width / 2.0f, (pieceOfLand.bounds.height - 0.04f) / 4.0f, origin,
+			        0);
 			FixtureDef fixtureDef = new FixtureDef();
 			fixtureDef.shape = polygonShape;
 			body.createFixture(fixtureDef);
@@ -110,9 +116,9 @@ public class WorldController extends InputAdapter
 
 		/**
 		 * Defines the body for BunnyHead using a DynamicBody so that the player
-		 * can be affected by gravity. The box shape used to define the body is a polygon
-		 * That is should be in the shape of a square to stretch the bunny head graphic
-		 * in to proper proportions.
+		 * can be affected by gravity. The box shape used to define the body is
+		 * a polygon That is should be in the shape of a square to stretch the
+		 * bunny head graphic in to proper proportions.
 		 */
 		// For PLayer
 		BunnyHead player = level.bunnyHead;
@@ -122,18 +128,17 @@ public class WorldController extends InputAdapter
 
 		Body body = myWorld.createBody(bodyDef);
 		body.setType(BodyType.DynamicBody);
-		body.setGravityScale(0.0f);
+		body.setGravityScale(9.8f);
 		body.setUserData(player);
 		player.body = body;
 
 		PolygonShape polygonShape = new PolygonShape();
 		origin.x = (player.bounds.width) / 2.0f;
 		origin.y = (player.bounds.height) / 2.0f;
-		polygonShape.setAsBox((player.bounds.width-0.7f) / 2.0f, (player.bounds.height-0.15f) / 2.0f, origin, 0);
+		polygonShape.setAsBox((player.bounds.width - 0.7f) / 2.0f, (player.bounds.height - 0.15f) / 2.0f, origin, 0);
 
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.shape = polygonShape;
-		// fixtureDef.friction = 0.5f;
 		body.createFixture(fixtureDef);
 		polygonShape.dispose();
 	}
@@ -162,40 +167,46 @@ public class WorldController extends InputAdapter
 	 */
 	public void update(float deltaTime)
 	{
-		// Because the Box2D step function is not running I know
-		// that nothing new is being added to objectsToRemove.
-		if (objectsToRemove.size > 0)
+		handleDebugInput(deltaTime);
+		if (isGameOver())
 		{
-			for (AbstractGameObject obj : objectsToRemove)
-			{
-				if (obj instanceof Rock)
-				{
-					int index = level.rocks.indexOf((Rock) obj, true);
-					if (index != -1)
-					{
-					    level.rocks.removeIndex(index);
-					    myWorld.destroyBody(obj.body);
-					}
-				}
-			}
-			objectsToRemove.removeRange(0, objectsToRemove.size - 1);
+			timeLeftGameOverDelay -= deltaTime;
+			if (timeLeftGameOverDelay < 0)
+				init();
+		} else
+		{
+			handleInputGame(deltaTime);
 		}
-
-		handleInputGame(deltaTime);
 
 		if (MathUtils.random(0.0f, 2.0f) < deltaTime)
 		{
-		    // Temp Location to Trigger Blocks
-		    Vector2 centerPos = new Vector2(level.bunnyHead.position);
-		    centerPos.x += level.bunnyHead.bounds.width;
-		    spawnBlocks(centerPos, Constants.BLOCKS_SPAWN_MAX, Constants.BLOCKS_SPAWN_RADIUS);
+			Vector2 centerPos = new Vector2(level.bunnyHead.position);
+			centerPos.x += level.bunnyHead.bounds.width;
 		}
 
-		myWorld.step(deltaTime, 8, 3);  // Tell the Box2D world to update.
+		myWorld.step(deltaTime, 8, 3); // tells box2d world to update
+
 		level.update(deltaTime);
 		checkForCollisions();
-
+		testCollisions();
 		cameraHelper.update(deltaTime);
+		if (!isGameOver() && isPlayerInWater())
+		{
+			AudioManager.instance.play(Assets.instance.sounds.liveLost);
+			lives--;
+			if (isGameOver())
+				timeLeftGameOverDelay = Constants.TIME_DELAY_GAME_OVER;
+			else
+				initLevel();
+		}
+
+		level.mountains.updateScrollPosition(cameraHelper.getPosition());
+
+		if (livesVisual > lives)
+			livesVisual = Math.max(lives, livesVisual - 1 * deltaTime);
+
+		if (scoreVisual < score)
+			scoreVisual = Math.min(score, scoreVisual + 250 * deltaTime);
 	}
 
 	public boolean isGameOver()
@@ -207,73 +218,28 @@ public class WorldController extends InputAdapter
 	{
 		return level.bunnyHead.position.y < -5;
 	}
-	
-	/**
-	 * Spawns rocks and stores them in to an array. Also gives them a DynamicBody
-	 * so movement may still occur as they float. Sets shape to polygon
-	 * so the rocks are taller than they are long.
-	 * 
-	 * Also defines denstiy, resititution, and friction so it will apply
-	 * equally if other objects come in contact with it.
-	 * @param pos
-	 * @param numBlocks
-	 * @param radius
-	 */
-	private void spawnBlocks(Vector2 pos, int numBlocks, float radius)
-	{
-		float blockShapeScale = 0.5f;
-		for (int i = 0; i<numBlocks; i++)
-		{
-			Rock block = new Rock();
-			float x = MathUtils.random(-radius,radius);
-			float y = MathUtils.random(5.0f, 15.0f);
-			//float rotation = MathUtils.random(0.0f, 360.0f) * MathUtils.degreesToRadians;
-			float blockScale = MathUtils.random(0.5f, 1.5f);
-			block.scale.set(blockScale, blockScale);
 
-			BodyDef bodyDef = new BodyDef();
-			bodyDef.position.set(pos);
-			bodyDef.position.add(x, y);
-			bodyDef.angle = 0; // rotation;
-			Body body = myWorld.createBody(bodyDef);
-			body.setType(BodyType.DynamicBody);
-			body.setUserData(block);
-			block.body = body;
-
-			PolygonShape polygonShape = new PolygonShape();
-			float halfWidth = block.bounds.width / 2.0f * blockScale;
-			float halfHeight = block.bounds.height / 2.0f * blockScale;
-			polygonShape.setAsBox(halfWidth * blockShapeScale, halfHeight * blockShapeScale);
-
-			FixtureDef fixtureDef = new FixtureDef();
-			fixtureDef.shape = polygonShape;
-			fixtureDef.density = 50;
-			fixtureDef.restitution = 0.5f;
-			fixtureDef.friction = 0.5f;
-			body.createFixture(fixtureDef);
-			polygonShape.dispose();
-			level.rocks.add(block);
-		}
-	}
-	
 	/**
 	 * Checks for collisions with BunnyHead object.
 	 */
 	private void checkForCollisions()
 	{
-		r1.set(level.bunnyHead.position.x, level.bunnyHead.position.y, level.bunnyHead.bounds.width, level.bunnyHead.bounds.height);
-
-		for (Rock l : level.rocks)
+		r1.set(level.bunnyHead.position.x, level.bunnyHead.position.y, level.bunnyHead.bounds.width,
+		        level.bunnyHead.bounds.height);
+		for (Rock dirt : level.rocks)
 		{
-			r2.set(l.position.x, l.position.y, l.bounds.width, l.bounds.height);
-			if (!r1.overlaps(r2)) continue;
-			onCollisionPlayerWithLand(l);
+			r2.set(dirt.position.x, dirt.position.y, dirt.bounds.width, dirt.bounds.height);
+			if (!r1.overlaps(r2))
+				continue;
+			onCollisionPlayerWithLand(dirt);
 		}
 	}
 
 	/**
-	 * Checks for collisions for NunnyHead and rocks. Allows for jump state switching
-	 * based upon if the player is in contact with the ground or if the player is jumping.
+	 * Checks for collisions for NunnyHead and rocks. Allows for jump state
+	 * switching based upon if the player is in contact with the ground or if
+	 * the player is jumping.
+	 * 
 	 * @param land
 	 */
 	private void onCollisionPlayerWithLand(Rock land)
@@ -285,33 +251,64 @@ public class WorldController extends InputAdapter
 			boolean hitRightEdge = player.position.x > (land.position.x + land.bounds.width / 2.0f);
 			if (hitRightEdge)
 			{
-				player.position.x = land.position.x + land.bounds.width;
-			}
+				player.position.x = player.position.x + player.bounds.width;
+			} 
 			else
 			{
-				player.position.x = land.position.x - player.bounds.width;
+				player.position.x = player.position.x - player.bounds.width;
 			}
 			return;
 		}
 
 		switch (player.jumpState)
 		{
-			case GROUNDED:
-				break;
-			case FALLING:
-			case JUMP_FALLING:
-				player.position.y = land.position.y + player.bounds.height;
-				player.jumpState = JUMP_STATE.GROUNDED;
-				break;
-			case JUMP_RISING:
-				player.position.y = land.position.y + player.bounds.height;
-				break;
+		case GROUNDED:
+			break;
+		case FALLING:
+		case JUMP_FALLING:
+			player.position.y = land.position.y + land.bounds.height + land.origin.y;
+			player.jumpState = JUMP_STATE.GROUNDED;
+			break;
+		case JUMP_RISING:
+			player.position.y = land.position.y + player.bounds.height + player.origin.y;
+			break;
+		}
+	}
+
+	private void testCollisions()
+	{
+		r1.set(level.bunnyHead.position.x, level.bunnyHead.position.y, level.bunnyHead.bounds.width,
+		        level.bunnyHead.bounds.height);
+
+		// Test collision: Bunny Head <-> Gold Coins
+		for (GoldCoin goldcoin : level.goldcoins)
+		{
+			if (goldcoin.collected)
+				continue;
+			r2.set(goldcoin.position.x, goldcoin.position.y, goldcoin.bounds.width, goldcoin.bounds.height);
+			if (!r1.overlaps(r2))
+				continue;
+			onCollisionBunnyWithGoldCoin(goldcoin);
+			break;
+		}
+
+		// Test collision: Bunny Head <-> Feathers
+		for (Feather feather : level.feathers)
+		{
+			if (feather.collected)
+				continue;
+			r2.set(feather.position.x, feather.position.y, feather.bounds.width, feather.bounds.height);
+			if (!r1.overlaps(r2))
+				continue;
+			onCollisionBunnyWithFeather(feather);
+			break;
 		}
 	}
 
 	/**
 	 * These check for collisions with Books and Rubys. If collision occurs,
 	 * Outputs a message to console.
+	 * 
 	 * @param goldcoin
 	 */
 	private void onCollisionBunnyWithGoldCoin(GoldCoin goldcoin)
@@ -464,7 +461,7 @@ public class WorldController extends InputAdapter
 		// switch to menu screen
 		game.setScreen(new MenuScreen(game));
 	}
-	
+
 	public void flagForRemoval(AbstractGameObject obj)
 	{
 		objectsToRemove.add(obj);
