@@ -1,0 +1,118 @@
+
+theLibrary.pack.png
+size: 1024,1024
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+anim_book
+  rotate: false
+  xy: 543, 411
+  size: 56, 56
+  orig: 56, 56
+  offset: 0, 0
+  index: 1
+book
+  rotate: false
+  xy: 543, 411
+  size: 56, 56
+  orig: 56, 56
+  offset: 0, 0
+  index: -1
+anim_book
+  rotate: false
+  xy: 155, 151
+  size: 56, 56
+  orig: 56, 56
+  offset: 0, 0
+  index: 2
+anim_book
+  rotate: false
+  xy: 383, 281
+  size: 56, 56
+  orig: 56, 56
+  offset: 0, 0
+  index: 3
+anim_book
+  rotate: false
+  xy: 543, 353
+  size: 56, 56
+  orig: 56, 56
+  offset: 0, 0
+  index: 4
+anim_book
+  rotate: false
+  xy: 601, 411
+  size: 56, 56
+  orig: 56, 56
+  offset: 0, 0
+  index: 5
+background2
+  rotate: false
+  xy: 2, 696
+  size: 1000, 300
+  orig: 1000, 300
+  offset: 0, 0
+  index: -1
+background3
+  rotate: false
+  xy: 2, 469
+  size: 1000, 225
+  orig: 1000, 225
+  offset: 0, 0
+  index: -1
+char
+  rotate: false
+  xy: 2, 27
+  size: 122, 82
+  orig: 122, 82
+  offset: 0, 0
+  index: -1
+dust01
+  rotate: false
+  xy: 155, 339
+  size: 192, 128
+  orig: 192, 128
+  offset: 0, 0
+  index: -1
+dust02
+  rotate: false
+  xy: 155, 209
+  size: 192, 128
+  orig: 192, 128
+  offset: 0, 0
+  index: -1
+dust03
+  rotate: false
+  xy: 349, 339
+  size: 192, 128
+  orig: 192, 128
+  offset: 0, 0
+  index: -1
+dust_overlay
+  rotate: false
+  xy: 349, 177
+  size: 32, 160
+  orig: 32, 160
+  offset: 0, 0
+  index: -1
+floor_edge
+  rotate: false
+  xy: 90, 111
+  size: 63, 356
+  orig: 63, 356
+  offset: 0, 0
+  index: -1
+floor_middle
+  rotate: false
+  xy: 2, 111
+  size: 86, 356
+  orig: 86, 356
+  offset: 0, 0
+  index: -1
+ruby
+  rotate: false
+  xy: 2, 2
+  size: 23, 23
+  orig: 23, 23
+  offset: 0, 0
+  index: -1
