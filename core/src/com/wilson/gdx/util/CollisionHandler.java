@@ -13,6 +13,7 @@ import com.wilson.gdx.game.objects.AbstractGameObject;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.game.objects.BunnyHead;
 import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
+import com.wilson.gdx.game.objects.GoldCoin;
 
 
 /**
@@ -161,25 +162,25 @@ public class CollisionHandler implements ContactListener
      */
     private void processPlayerContact(Fixture playerFixture, Fixture objFixture)
     {
-    	if (objFixture.getBody().getUserData() instanceof Rock)
-    	{
-    		BunnyHead player = (BunnyHead)playerFixture.getBody().getUserData();
-    	    player.acceleration.y = 0;
-    	    player.velocity.y = 0;
-    	    player.jumpState = JUMP_STATE.GROUNDED;
-    	    playerFixture.getBody().setLinearVelocity(player.velocity);
-    	}
-    	else if (objFixture.getBody().getUserData() instanceof Rock)
-    	{
-    		// Remove the block update the player's score by 1.
-    		world.score++;
-    		AudioManager.instance.play(Assets.instance.sounds.pickupCoin);
-    		AudioManager.instance.play(Assets.instance.sounds.jump);
-    		AudioManager.instance.play(Assets.instance.sounds.liveLost);
+        if (objFixture.getBody().getUserData() instanceof Rock)
+        {
+        	BunnyHead player = (BunnyHead) playerFixture.getBody().getUserData();
+            player.acceleration.y = 0;
+            player.velocity.y = 0;
+            player.jumpState = JUMP_STATE.GROUNDED;
+            playerFixture.getBody().setLinearVelocity(player.velocity);
+        }
+        
+    	else if (objFixture.getBody().getUserData() instanceof GoldCoin)
+        {
+            AudioManager.instance.play(Assets.instance.sounds.pickupCoin);
+            AudioManager.instance.play(Assets.instance.sounds.jump);
+            AudioManager.instance.play(Assets.instance.sounds.liveLost);
 
-    		Rock block = (Rock)objFixture.getBody().getUserData();
-    		world.flagForRemoval(block);
-    	}
+            GoldCoin book = (GoldCoin) objFixture.getBody().getUserData();
+            world.score = +book.getScore();
+            world.flagForRemoval(book);
+        }
     }
 
 }

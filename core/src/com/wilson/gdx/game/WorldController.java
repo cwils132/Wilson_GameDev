@@ -106,7 +106,7 @@ public class WorldController extends InputAdapter
 			PolygonShape polygonShape = new PolygonShape();
 			origin.x = pieceOfLand.bounds.width / 2.0f;
 			origin.y = pieceOfLand.bounds.height / 2.0f;
-			polygonShape.setAsBox(pieceOfLand.bounds.width / 2.0f, (pieceOfLand.bounds.height - 0.04f) / 4.0f, origin,
+			polygonShape.setAsBox(pieceOfLand.bounds.width / 2.0f, (pieceOfLand.bounds.height - 0.04f) / 2.0f, origin,
 			        0);
 			FixtureDef fixtureDef = new FixtureDef();
 			fixtureDef.shape = polygonShape;
@@ -187,8 +187,6 @@ public class WorldController extends InputAdapter
 		myWorld.step(deltaTime, 8, 3); // tells box2d world to update
 
 		level.update(deltaTime);
-		checkForCollisions();
-		testCollisions();
 		cameraHelper.update(deltaTime);
 		if (!isGameOver() && isPlayerInWater())
 		{
@@ -216,116 +214,7 @@ public class WorldController extends InputAdapter
 
 	public boolean isPlayerInWater()
 	{
-		return level.bunnyHead.position.y < -5;
-	}
-
-	/**
-	 * Checks for collisions with BunnyHead object.
-	 */
-	private void checkForCollisions()
-	{
-		r1.set(level.bunnyHead.position.x, level.bunnyHead.position.y, level.bunnyHead.bounds.width,
-		        level.bunnyHead.bounds.height);
-		for (Rock dirt : level.rocks)
-		{
-			r2.set(dirt.position.x, dirt.position.y, dirt.bounds.width, dirt.bounds.height);
-			if (!r1.overlaps(r2))
-				continue;
-			onCollisionPlayerWithLand(dirt);
-		}
-	}
-
-	/**
-	 * Checks for collisions for NunnyHead and rocks. Allows for jump state
-	 * switching based upon if the player is in contact with the ground or if
-	 * the player is jumping.
-	 * 
-	 * @param land
-	 */
-	private void onCollisionPlayerWithLand(Rock land)
-	{
-		BunnyHead player = level.bunnyHead;
-		float heightDifference = Math.abs(player.position.y - (land.position.y + land.bounds.height));
-		if (heightDifference > 0.25f)
-		{
-			boolean hitRightEdge = player.position.x > (land.position.x + land.bounds.width / 2.0f);
-			if (hitRightEdge)
-			{
-				player.position.x = player.position.x + player.bounds.width;
-			} 
-			else
-			{
-				player.position.x = player.position.x - player.bounds.width;
-			}
-			return;
-		}
-
-		switch (player.jumpState)
-		{
-		case GROUNDED:
-			break;
-		case FALLING:
-		case JUMP_FALLING:
-			player.position.y = land.position.y + land.bounds.height + land.origin.y;
-			player.jumpState = JUMP_STATE.GROUNDED;
-			break;
-		case JUMP_RISING:
-			player.position.y = land.position.y + player.bounds.height + player.origin.y;
-			break;
-		}
-	}
-
-	private void testCollisions()
-	{
-		r1.set(level.bunnyHead.position.x, level.bunnyHead.position.y, level.bunnyHead.bounds.width,
-		        level.bunnyHead.bounds.height);
-
-		// Test collision: Bunny Head <-> Gold Coins
-		for (GoldCoin goldcoin : level.goldcoins)
-		{
-			if (goldcoin.collected)
-				continue;
-			r2.set(goldcoin.position.x, goldcoin.position.y, goldcoin.bounds.width, goldcoin.bounds.height);
-			if (!r1.overlaps(r2))
-				continue;
-			onCollisionBunnyWithGoldCoin(goldcoin);
-			break;
-		}
-
-		// Test collision: Bunny Head <-> Feathers
-		for (Feather feather : level.feathers)
-		{
-			if (feather.collected)
-				continue;
-			r2.set(feather.position.x, feather.position.y, feather.bounds.width, feather.bounds.height);
-			if (!r1.overlaps(r2))
-				continue;
-			onCollisionBunnyWithFeather(feather);
-			break;
-		}
-	}
-
-	/**
-	 * These check for collisions with Books and Rubys. If collision occurs,
-	 * Outputs a message to console.
-	 * 
-	 * @param goldcoin
-	 */
-	private void onCollisionBunnyWithGoldCoin(GoldCoin goldcoin)
-	{
-		goldcoin.collected = true;
-		AudioManager.instance.play(Assets.instance.sounds.pickupCoin);
-		score += goldcoin.getScore();
-		Gdx.app.log(TAG, "Book collected");
-	}
-
-	private void onCollisionBunnyWithFeather(Feather feather)
-	{
-		feather.collected = true;
-		AudioManager.instance.play(Assets.instance.sounds.pickupFeather);
-		score += feather.getScore();
-		level.bunnyHead.setFeatherPowerup(true);
-		Gdx.app.log(TAG, "Ruby collected");
+		return level.bunnyHead.body.getPosition().y < -5;
 	}
 
 	/**
@@ -406,12 +295,12 @@ public class WorldController extends InputAdapter
 				// Execute auto-forward movement on non-desktop platform
 				if (Gdx.app.getType() != ApplicationType.Desktop)
 				{
-					level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
+					level.bunnyHead.body.getLinearVelocity().x = level.bunnyHead.terminalVelocity.x;
 				}
 			}
 
 			// Bunny Jump
-			if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Keys.SPACE))
+			if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Keys.SPACE)) 
 				level.bunnyHead.setJumping(true);
 			else
 				level.bunnyHead.setJumping(false);

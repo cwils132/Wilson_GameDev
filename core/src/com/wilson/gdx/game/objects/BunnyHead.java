@@ -99,10 +99,18 @@ public class BunnyHead extends AbstractGameObject
 	 */
 	@Override
 	public void update (float deltaTime) {
-		super.update(deltaTime);
-		if (velocity.x != 0) {
-			viewDirection = velocity.x < 0 ? VIEW_DIRECTION.LEFT : VIEW_DIRECTION.RIGHT;
-		}
+        super.update(deltaTime);
+        updateMotionX(deltaTime);
+        updateMotionY(deltaTime);
+        if (body != null)
+        {
+            body.setLinearVelocity(velocity);
+            position.set(body.getPosition());
+        }
+        if (velocity.x != 0)
+        {
+            viewDirection = velocity.x < 0 ? VIEW_DIRECTION.LEFT : VIEW_DIRECTION.RIGHT;
+        }
 		if (timeLeftFeatherPowerup > 0) {
 			timeLeftFeatherPowerup -= deltaTime;
 			if (timeLeftFeatherPowerup < 0) {
@@ -125,7 +133,7 @@ public class BunnyHead extends AbstractGameObject
 		{
 		case GROUNDED:
 			jumpState = JUMP_STATE.FALLING;
-			if (velocity.x != 0)
+			if (body.getLinearVelocity().x != 0)
 			{
 				dustParticles.setPosition(position.x + dimension.x / 2,  position.y);
 				dustParticles.start();
@@ -226,36 +234,41 @@ public class BunnyHead extends AbstractGameObject
 	 */
 	public void setJumping(boolean jumpKeyPressed)
 	{
-		switch (jumpState)
-		{
-		case GROUNDED: // Character is standing on a platform
-			if (jumpKeyPressed)
-			{
-				/**
-				 * Plays jump sound when jump key is pressed
-				 */
-				AudioManager.instance.play(Assets.instance.sounds.jump);
-				// Start counting jump time from the beginning
-				timeJumping = 0;
-				jumpState = JUMP_STATE.JUMP_RISING;
-			}
-			break;
-		case JUMP_RISING: // Rising in the air
-			if (!jumpKeyPressed)
-			{
-				jumpState = JUMP_STATE.JUMP_FALLING;
-			}
-			break;
-		case FALLING:// Falling down
-		case JUMP_FALLING: // Falling down after jump
-			if (jumpKeyPressed && hasFeatherPowerup)
-			{
-				AudioManager.instance.play(Assets.instance.sounds.jumpWithFeather, 1, MathUtils.random(1.0f, 1.1f));
-				timeJumping = JUMP_TIME_OFFSET_FLYING;
-				jumpState = JUMP_STATE.JUMP_RISING;
-			}
-			break;
-		}
-	}
+        switch (jumpState)
+        {
+        case GROUNDED: // Character is standing on a platform
+            if (jumpKeyPressed)
+            {
+            	System.out.println("Jumping");
+                AudioManager.instance.play(Assets.instance.sounds.jump);
+                // Start counting jump time from the beginning
+                body.applyForceToCenter(0.0f, 500.0f, true);
+            }
+            else if (velocity.x != 0)
+            {
+                //Gdx.app.log(TAG, "starting particles");
+                dustParticles.setPosition(position.x + dimension.x / 2, position.y + 0.1f);
+                dustParticles.start();
+            }
+            else if (velocity.x == 0)
+            {
+                dustParticles.allowCompletion();
+            }
+            break;
+        case JUMP_RISING: // Rising in the air
+            if (!jumpKeyPressed)
+                jumpState = JUMP_STATE.JUMP_FALLING;
+            break;
+        case FALLING:// Falling down
+        case JUMP_FALLING: // Falling down after jump
+            if (jumpKeyPressed && hasFeatherPowerup)
+            {
+                AudioManager.instance.play(Assets.instance.sounds.jumpWithFeather, 1, MathUtils.random(1.0f, 1.1f));
+                timeJumping = JUMP_TIME_OFFSET_FLYING;
+                jumpState = JUMP_STATE.JUMP_RISING;
+            }
+            break;
+        }
+	} 
 
 }
