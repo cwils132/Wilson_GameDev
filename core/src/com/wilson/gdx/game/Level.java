@@ -142,7 +142,7 @@ public class Level
 				else if (BLOCK_TYPE.PLAYER_SPAWNPOINT.sameColor(currentPixel))
 				{
 					obj = new BunnyHead();
-					offsetHeight = -3.0f;
+					offsetHeight = -1.0f;
 					obj.position.set(pixelX, baseHeight * obj.dimension.y + offsetHeight);
 					bunnyHead = (BunnyHead) obj;
 
@@ -151,7 +151,7 @@ public class Level
 				else if (BLOCK_TYPE.ITEM_FEATHER.sameColor(currentPixel))
 				{
 					obj = new Feather();
-					offsetHeight = -1.5f;
+					offsetHeight = 0.5f;
 					obj.position.set(pixelX, baseHeight * obj.dimension.y + offsetHeight);
 					feathers.add((Feather) obj);
 
@@ -160,7 +160,7 @@ public class Level
 				else if (BLOCK_TYPE.ITEM_GOLD_COIN.sameColor(currentPixel))
 				{
 					obj = new GoldCoin();
-					offsetHeight = -1.5f;
+					offsetHeight = 0.5f;
 					obj.position.set(pixelX, baseHeight * obj.dimension.y + offsetHeight);
 					goldcoins.add((GoldCoin) obj);
 

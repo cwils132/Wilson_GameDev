@@ -14,6 +14,7 @@ import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.game.objects.BunnyHead;
 import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
 import com.wilson.gdx.game.objects.GoldCoin;
+import com.wilson.gdx.game.Level;
 
 
 /**
@@ -33,7 +34,7 @@ public class CollisionHandler implements ContactListener
     	world = w;
         listeners = new ObjectMap<Short, ObjectMap<Short, ContactListener>>();
     }
-
+    
     /**
      * Adds listeners to check if contact occurs between the Player
      * and another object.
