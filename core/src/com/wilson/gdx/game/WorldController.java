@@ -30,7 +30,7 @@ import com.wilson.gdx.util.CollisionHandler;
 import com.badlogic.gdx.math.Rectangle;
 import com.wilson.gdx.game.objects.AbstractGameObject;
 import com.wilson.gdx.game.objects.BunnyHead;
-import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
+//import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
 import com.wilson.gdx.game.objects.BunnyHead.VIEW_DIRECTION;
 import com.wilson.gdx.game.objects.Feather;
 import com.wilson.gdx.game.objects.GoldCoin;
@@ -46,6 +46,8 @@ public class WorldController extends InputAdapter
 	public int score;
 	public float livesVisual; // decreases when lives decrease
 	public float scoreVisual;
+
+	float timeHeld;
 
 	public Array<AbstractGameObject> objectsToRemove = new Array<AbstractGameObject>();
 
@@ -83,7 +85,7 @@ public class WorldController extends InputAdapter
 	 * Adds physics in to the game to be initialized at the start through
 	 * initLevel();. Defines a KinematicBody for rocks to be used to if
 	 * collision occurs the rocks do not let the player fall through.
-	 * 
+	 *
 	 * Defines a polygon shape for the rocks and a listener for world to monitor
 	 * if collisions occur. If a collision does occur then CollisionHandler is
 	 * called.
@@ -159,10 +161,10 @@ public class WorldController extends InputAdapter
 	 * Calls to CameraHelper to update the game as things change with the
 	 * images. Also tells the program to cause the image rotations, and debugs
 	 * as necessary.
-	 * 
+	 *
 	 * In this case, the debug checks to make sure the program is running
 	 * through the desktop.
-	 * 
+	 *
 	 * @param deltaTime
 	 */
 	public void update(float deltaTime)
@@ -221,11 +223,11 @@ public class WorldController extends InputAdapter
 	 * If the program is running in Desktop mode, keyboard use is enabled. The
 	 * keyboard is used by called InputAdapter. By using the Keys() method
 	 * LibGDX is able to tell what keyboard keys are used at each press.
-	 * 
+	 *
 	 * When a key is pressed, the if statement checks it and performs the
 	 * corresponding action. This will currently move objects around the screen
 	 * or move the camera itself.
-	 * 
+	 *
 	 * @param deltaTime
 	 */
 	private void handleDebugInput(float deltaTime)
@@ -269,14 +271,14 @@ public class WorldController extends InputAdapter
 	 * This is set up to handle player inputs on the bunnyHead. When left or
 	 * right is pressed it gets the terminalVelocity value of the BunnyHead
 	 * object and executes movement.
-	 * 
+	 *
 	 * (Terminal Velocity values actually stored in AbstractGameObject)
-	 * 
+	 *
 	 * Jump is different however. The calculations are stored in BunnyHead since
 	 * we don't need anything else to be able to jump when we press space. It
 	 * calls to a function setJumping() and it executes depending on the
 	 * situation.
-	 * 
+	 *
 	 * @param deltaTime
 	 */
 	private void handleInputGame(float deltaTime)
@@ -300,11 +302,28 @@ public class WorldController extends InputAdapter
 			}
 
 			// Bunny Jump
-			if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Keys.SPACE)) 
-				level.bunnyHead.setJumping(true);
-			else
-				level.bunnyHead.setJumping(false);
+			if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Keys.SPACE))
+			{
+				Vector2 vec = level.bunnyHead.body.getLinearVelocity();
+				Gdx.app.error(TAG, "Process Space: "+timeHeld);
+				if (timeHeld < 0.5)
+				{
+					Gdx.app.error(TAG, "Process Jump: "+timeHeld);
+					level.bunnyHead.grounded = false;
+					level.bunnyHead.jumping = true;
+//					level.bunnyHead.body.applyLinearImpulse(0.0f, 10.0f, level.bunnyHead.body.getPosition().x, level.bunnyHead.body.getPosition().y, true);
+					level.bunnyHead.body.setLinearVelocity(vec.x, level.bunnyHead.terminalVelocity.y);
+					level.bunnyHead.position.set(level.bunnyHead.body.getPosition());
+					timeHeld += deltaTime;
+				}
+			}
 		}
+	}
+
+	public void resetJump()
+	{
+		timeHeld = 0.0f;
+		Gdx.app.error(TAG, "Reset Time: "+timeHeld);
 	}
 
 	private void moveCamera(float x, float y)

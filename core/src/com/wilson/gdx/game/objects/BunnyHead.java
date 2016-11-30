@@ -20,6 +20,9 @@ public class BunnyHead extends AbstractGameObject
 	private final float JUMP_TIME_MAX = 0.3f;
 	private final float JUMP_TIME_MIN = 0.1f;
 	private final float JUMP_TIME_OFFSET_FLYING = JUMP_TIME_MAX - 0.018f;
+	
+	public boolean grounded;
+	public boolean jumping;
 
 	public ParticleEffect dustParticles = new ParticleEffect();
 
@@ -28,10 +31,10 @@ public class BunnyHead extends AbstractGameObject
 		LEFT, RIGHT
 	}
 
-	public enum JUMP_STATE
-	{
-		GROUNDED, FALLING, JUMP_RISING, JUMP_FALLING
-	}
+//	public enum JUMP_STATE
+//	{
+//		GROUNDED, FALLING, JUMP_RISING, JUMP_FALLING
+//	}
 
 	/**
 	 * Variables used to define the bunny head during runtime.
@@ -41,7 +44,7 @@ public class BunnyHead extends AbstractGameObject
 	public VIEW_DIRECTION viewDirection;
 
 	public float timeJumping;
-	public JUMP_STATE jumpState;
+//	public JUMP_STATE jumpState;
 
 	public boolean hasFeatherPowerup;
 	public float timeLeftFeatherPowerup;
@@ -83,7 +86,8 @@ public class BunnyHead extends AbstractGameObject
 		viewDirection = VIEW_DIRECTION.RIGHT;
 
 		// Jump state
-		jumpState = JUMP_STATE.FALLING;
+//		jumpState = JUMP_STATE.FALLING;
+		grounded = true;
 		timeJumping = 0;
 
 		// Power-ups
@@ -123,31 +127,6 @@ public class BunnyHead extends AbstractGameObject
 	}
 
 	/**
-	 * Controls the jumping behavior for the game and redraws while active. Also
-	 * controls falling.
-	 */
-	@Override
-	protected void updateMotionY(float deltaTime)
-	{
-		switch (jumpState)
-		{
-		case GROUNDED:
-			//jumpState = JUMP_STATE.FALLING;
-			if (body.getLinearVelocity().x != 0)
-			{
-				dustParticles.setPosition(position.x + dimension.x / 2,  position.y);
-				dustParticles.start();
-			}
-			break;
-		}
-		if (jumpState != JUMP_STATE.GROUNDED)
-		{
-			dustParticles.allowCompletion();
-			super.updateMotionY(deltaTime);
-		}
-	}
-
-	/**
 	 * Changes color of the bunny to yellow when the feather is collected.
 	 * Otherwise just draws the head from the region of the atlas.
 	 */
@@ -156,7 +135,7 @@ public class BunnyHead extends AbstractGameObject
 		TextureRegion reg = null;
 
 		// Draw Particles
-		dustParticles.draw(batch);
+//		dustParticles.draw(batch);
 
 		// Apply Skin Color
 		batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
@@ -211,50 +190,5 @@ public class BunnyHead extends AbstractGameObject
 	 * 
 	 * @param jumpKeyPressed
 	 */
-	public void setJumping(boolean jumpKeyPressed)
-	{
-        switch (jumpState)
-        {
-        case GROUNDED: // Character is standing on a platform
-            if (jumpKeyPressed)
-            {
-            	jumpState = JUMP_STATE.JUMP_RISING;
-            		System.out.println("Jumping");
-            		AudioManager.instance.play(Assets.instance.sounds.jump);
-            		body.applyLinearImpulse(0.0f, 60.0f, body.getPosition().x, body.getPosition().y, true);
-            }
-            else if (velocity.x != 0)
-            {
-                //Gdx.app.log(TAG, "starting particles");
-                dustParticles.setPosition(position.x + dimension.x / 2, position.y + 0.1f);
-                dustParticles.start();
-            }
-            else if (velocity.x == 0)
-            {
-                dustParticles.allowCompletion();
-            }
-            break;
-        case JUMP_RISING: // Rising in the air
-            if (!jumpKeyPressed)
-                jumpState = JUMP_STATE.JUMP_FALLING;
-            break;
-        case FALLING:// Falling down
-        	if (body.getLinearVelocity().y <= 0){
-        		System.out.println("GROUNDED");
-        		jumpState = JUMP_STATE.GROUNDED;
-        	}
-        	break;
-        case JUMP_FALLING: // Falling down after jump
-        	System.out.println("Falling");
-            if (jumpKeyPressed && hasFeatherPowerup)
-            {
-                AudioManager.instance.play(Assets.instance.sounds.jumpWithFeather, 1, MathUtils.random(1.0f, 1.1f));
-                timeJumping = JUMP_TIME_OFFSET_FLYING;
-                jumpState = JUMP_STATE.JUMP_RISING;
-            }
-            jumpState = JUMP_STATE.FALLING;
-            break;
-        }
-	} 
 
 }

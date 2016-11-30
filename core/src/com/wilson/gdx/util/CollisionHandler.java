@@ -12,7 +12,7 @@ import com.wilson.gdx.game.Assets;
 import com.wilson.gdx.game.objects.AbstractGameObject;
 import com.wilson.gdx.game.objects.Rock;
 import com.wilson.gdx.game.objects.BunnyHead;
-import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
+//import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
 import com.wilson.gdx.game.objects.GoldCoin;
 import com.wilson.gdx.game.Level;
 
@@ -34,7 +34,7 @@ public class CollisionHandler implements ContactListener
     	world = w;
         listeners = new ObjectMap<Short, ObjectMap<Short, ContactListener>>();
     }
-    
+
     /**
      * Adds listeners to check if contact occurs between the Player
      * and another object.
@@ -60,6 +60,7 @@ public class CollisionHandler implements ContactListener
         //Gdx.app.log("CollisionHandler-begin A", "begin");
 
        // processContact(contact);
+        processContact(contact);
 
         ContactListener listener = getListener(fixtureA.getFilterData().categoryBits, fixtureB.getFilterData().categoryBits);
         if (listener != null)
@@ -78,7 +79,7 @@ public class CollisionHandler implements ContactListener
         Fixture fixtureB = contact.getFixtureB();
 
        // Gdx.app.log("CollisionHandler-end A", "end");
-        processContact(contact);
+
 
         // Gdx.app.log("CollisionHandler-end A", fixtureA.getBody().getLinearVelocity().x+" : "+fixtureA.getBody().getLinearVelocity().y);
         // Gdx.app.log("CollisionHandler-end B", fixtureB.getBody().getLinearVelocity().x+" : "+fixtureB.getBody().getLinearVelocity().y);
@@ -165,13 +166,15 @@ public class CollisionHandler implements ContactListener
     {
         if (objFixture.getBody().getUserData() instanceof Rock)
         {
-        	BunnyHead player = (BunnyHead) playerFixture.getBody().getUserData();
-            player.acceleration.y = 0;
-            player.velocity.y = 0;
-            player.jumpState = JUMP_STATE.GROUNDED;
-            playerFixture.getBody().setLinearVelocity(player.velocity);
+        	Gdx.app.error("CH", "Hit Rock");
+        	world.resetJump();
+        	world.level.bunnyHead.grounded = true;
+        	world.level.bunnyHead.jumping = false;
+        	if (world.level.bunnyHead.jumping){
+        		System.out.println("Jumping");
+        	}
         }
-        
+
     	else if (objFixture.getBody().getUserData() instanceof GoldCoin)
         {
             AudioManager.instance.play(Assets.instance.sounds.pickupCoin);
