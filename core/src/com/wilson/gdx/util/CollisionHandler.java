@@ -178,11 +178,10 @@ public class CollisionHandler implements ContactListener
     	else if (objFixture.getBody().getUserData() instanceof GoldCoin)
         {
             AudioManager.instance.play(Assets.instance.sounds.pickupCoin);
-            AudioManager.instance.play(Assets.instance.sounds.jump);
-            AudioManager.instance.play(Assets.instance.sounds.liveLost);
 
             GoldCoin book = (GoldCoin) objFixture.getBody().getUserData();
-            world.score = +book.getScore();
+            book.collected = true;
+            world.score += book.getScore();
             world.flagForRemoval(book);
         }
     }

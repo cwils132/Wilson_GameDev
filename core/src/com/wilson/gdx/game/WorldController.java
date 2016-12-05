@@ -113,6 +113,27 @@ public class WorldController extends InputAdapter
 			FixtureDef fixtureDef = new FixtureDef();
 			fixtureDef.shape = polygonShape;
 			body.createFixture(fixtureDef);
+			fixtureDef.friction = 0.2f;
+			polygonShape.dispose();
+		}
+		
+		for (GoldCoin collectableBook : level.goldcoins)
+		{
+			BodyDef bodyDef = new BodyDef();
+			bodyDef.position.set(collectableBook.position);
+			bodyDef.type = BodyType.KinematicBody;
+			Body body = myWorld.createBody(bodyDef);
+			body.setUserData(collectableBook);
+			collectableBook.body = body;
+			PolygonShape polygonShape = new PolygonShape();
+			origin.x = collectableBook.bounds.width / 2.0f;
+			origin.y = collectableBook.bounds.height / 2.0f;
+			polygonShape.setAsBox(collectableBook.bounds.width / 2.0f, (collectableBook.bounds.height - 0.04f) / 2.0f, origin,
+			        0);
+			FixtureDef fixtureDef = new FixtureDef();
+			fixtureDef.shape = polygonShape;
+			fixtureDef.isSensor = true;
+			body.createFixture(fixtureDef);
 			polygonShape.dispose();
 		}
 
@@ -141,6 +162,7 @@ public class WorldController extends InputAdapter
 
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.shape = polygonShape;
+		fixtureDef.density = 3.0f;
 		body.createFixture(fixtureDef);
 		polygonShape.dispose();
 	}
@@ -305,14 +327,14 @@ public class WorldController extends InputAdapter
 			if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Keys.SPACE))
 			{
 				Vector2 vec = level.bunnyHead.body.getLinearVelocity();
-				Gdx.app.error(TAG, "Process Space: "+timeHeld);
-				if (timeHeld < 0.5)
+//				Gdx.app.error(TAG, "Process Space: "+timeHeld);
+				if (timeHeld < 0.4)
 				{
-					Gdx.app.error(TAG, "Process Jump: "+timeHeld);
+//					Gdx.app.error(TAG, "Process Jump: "+timeHeld);
 					level.bunnyHead.grounded = false;
 					level.bunnyHead.jumping = true;
-//					level.bunnyHead.body.applyLinearImpulse(0.0f, 10.0f, level.bunnyHead.body.getPosition().x, level.bunnyHead.body.getPosition().y, true);
-					level.bunnyHead.body.setLinearVelocity(vec.x, level.bunnyHead.terminalVelocity.y);
+					level.bunnyHead.body.applyLinearImpulse(0.0f, 10.0f, level.bunnyHead.body.getPosition().x, level.bunnyHead.body.getPosition().y, true);
+//					level.bunnyHead.body.setLinearVelocity(vec.x, level.bunnyHead.terminalVelocity.y);
 					level.bunnyHead.position.set(level.bunnyHead.body.getPosition());
 					timeHeld += deltaTime;
 				}

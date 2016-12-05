@@ -16,10 +16,6 @@ public class BunnyHead extends AbstractGameObject
 {
 
 	public static final String TAG = BunnyHead.class.getName();
-
-	private final float JUMP_TIME_MAX = 0.3f;
-	private final float JUMP_TIME_MIN = 0.1f;
-	private final float JUMP_TIME_OFFSET_FLYING = JUMP_TIME_MAX - 0.018f;
 	
 	public boolean grounded;
 	public boolean jumping;
@@ -78,7 +74,7 @@ public class BunnyHead extends AbstractGameObject
 		bounds.set(0, 0, dimension.x, dimension.y);
 
 		// Set physics values
-		terminalVelocity.set(3.0f, 4.0f);
+		terminalVelocity.set(5.0f, 4.0f);
 		friction.set(12.0f, 0.0f);
 		acceleration.set(0.0f, -25.0f);
 
