@@ -56,10 +56,6 @@ public class WorldController extends InputAdapter
 
 	public CameraHelper cameraHelper;
 
-	// Rectangles for collision detection
-	private Rectangle r1 = new Rectangle();
-	private Rectangle r2 = new Rectangle();
-
 	private float timeLeftGameOverDelay;
 
 	private Game game;
@@ -116,7 +112,7 @@ public class WorldController extends InputAdapter
 			fixtureDef.friction = 0.2f;
 			polygonShape.dispose();
 		}
-		
+
 		for (GoldCoin collectableBook : level.goldcoins)
 		{
 			BodyDef bodyDef = new BodyDef();
@@ -310,9 +306,18 @@ public class WorldController extends InputAdapter
 			// Player Movement
 			if (Gdx.input.isKeyPressed(Keys.LEFT))
 			{
+				if (level.bunnyHead.grounded){
+				level.bunnyHead.dustParticles.setPosition(level.bunnyHead.body.getPosition().x + level.bunnyHead.dimension.x / 2, level.bunnyHead.body.getPosition().y);
+				level.bunnyHead.dustParticles.start();
+				}
 				level.bunnyHead.velocity.x = -level.bunnyHead.terminalVelocity.x;
+
 			} else if (Gdx.input.isKeyPressed(Keys.RIGHT))
 			{
+				if (level.bunnyHead.grounded){
+				level.bunnyHead.dustParticles.setPosition(level.bunnyHead.body.getPosition().x + level.bunnyHead.dimension.x / 2, level.bunnyHead.body.getPosition().y);
+				level.bunnyHead.dustParticles.start();
+				}
 				level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
 			} else
 			{
@@ -326,11 +331,15 @@ public class WorldController extends InputAdapter
 			// Bunny Jump
 			if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Keys.SPACE))
 			{
+				level.bunnyHead.dustParticles.allowCompletion();
 				Vector2 vec = level.bunnyHead.body.getLinearVelocity();
 //				Gdx.app.error(TAG, "Process Space: "+timeHeld);
 				if (timeHeld < 0.4)
 				{
 //					Gdx.app.error(TAG, "Process Jump: "+timeHeld);
+					if (level.bunnyHead.grounded){
+						AudioManager.instance.play(Assets.instance.sounds.jump);
+					}
 					level.bunnyHead.grounded = false;
 					level.bunnyHead.jumping = true;
 					level.bunnyHead.body.applyLinearImpulse(0.0f, 10.0f, level.bunnyHead.body.getPosition().x, level.bunnyHead.body.getPosition().y, true);

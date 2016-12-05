@@ -121,6 +121,7 @@ public class BunnyHead extends AbstractGameObject
 		}
 		dustParticles.update(deltaTime);
 	}
+	
 
 	/**
 	 * Changes color of the bunny to yellow when the feather is collected.
@@ -131,7 +132,7 @@ public class BunnyHead extends AbstractGameObject
 		TextureRegion reg = null;
 
 		// Draw Particles
-//		dustParticles.draw(batch);
+		dustParticles.draw(batch);
 
 		// Apply Skin Color
 		batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
