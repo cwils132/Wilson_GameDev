@@ -16,7 +16,7 @@ public class BunnyHead extends AbstractGameObject
 {
 
 	public static final String TAG = BunnyHead.class.getName();
-	
+
 	public boolean grounded;
 	public boolean jumping;
 
@@ -27,10 +27,10 @@ public class BunnyHead extends AbstractGameObject
 		LEFT, RIGHT
 	}
 
-//	public enum JUMP_STATE
-//	{
-//		GROUNDED, FALLING, JUMP_RISING, JUMP_FALLING
-//	}
+	// public enum JUMP_STATE
+	// {
+	// GROUNDED, FALLING, JUMP_RISING, JUMP_FALLING
+	// }
 
 	/**
 	 * Variables used to define the bunny head during runtime.
@@ -40,7 +40,7 @@ public class BunnyHead extends AbstractGameObject
 	public VIEW_DIRECTION viewDirection;
 
 	public float timeJumping;
-//	public JUMP_STATE jumpState;
+	// public JUMP_STATE jumpState;
 
 	public boolean hasFeatherPowerup;
 	public float timeLeftFeatherPowerup;
@@ -58,8 +58,8 @@ public class BunnyHead extends AbstractGameObject
 	 * Immediately sets jump state to falling, that the bunny will be looking to
 	 * the right, and that we have no feather powerup.
 	 * 
-	 * Uses dust particles file to generate dust as the bunny moves around
-	 * the screen on the ground.
+	 * Uses dust particles file to generate dust as the bunny moves around the
+	 * screen on the ground.
 	 */
 	public void init()
 	{
@@ -82,7 +82,7 @@ public class BunnyHead extends AbstractGameObject
 		viewDirection = VIEW_DIRECTION.RIGHT;
 
 		// Jump state
-//		jumpState = JUMP_STATE.FALLING;
+		// jumpState = JUMP_STATE.FALLING;
 		grounded = true;
 		timeJumping = 0;
 
@@ -91,29 +91,33 @@ public class BunnyHead extends AbstractGameObject
 		timeLeftFeatherPowerup = 0;
 
 		// Particles
-		dustParticles.load(Gdx.files.internal("../core/assets/particles/dust.pfx"), Gdx.files.internal("../core/assets/particles"));
+		dustParticles.load(Gdx.files.internal("../core/assets/particles/dust.pfx"),
+		        Gdx.files.internal("../core/assets/particles"));
 	}
 
 	/**
 	 * Updates the screen as you move, the feather timer counts down, etc.
 	 */
 	@Override
-	public void update (float deltaTime) {
-        super.update(deltaTime);
-        updateMotionX(deltaTime);
-        updateMotionY(deltaTime);
-        if (body != null)
-        {
-            body.setLinearVelocity(velocity);
-            position.set(body.getPosition());
-        }
-        if (velocity.x != 0)
-        {
-            viewDirection = velocity.x < 0 ? VIEW_DIRECTION.LEFT : VIEW_DIRECTION.RIGHT;
-        }
-		if (timeLeftFeatherPowerup > 0) {
+	public void update(float deltaTime)
+	{
+		super.update(deltaTime);
+		updateMotionX(deltaTime);
+		updateMotionY(deltaTime);
+		if (body != null)
+		{
+			body.setLinearVelocity(velocity);
+			position.set(body.getPosition());
+		}
+		if (velocity.x != 0)
+		{
+			viewDirection = velocity.x < 0 ? VIEW_DIRECTION.LEFT : VIEW_DIRECTION.RIGHT;
+		}
+		if (timeLeftFeatherPowerup > 0)
+		{
 			timeLeftFeatherPowerup -= deltaTime;
-			if (timeLeftFeatherPowerup < 0) {
+			if (timeLeftFeatherPowerup < 0)
+			{
 				// disable power-up
 				timeLeftFeatherPowerup = 0;
 				setFeatherPowerup(false);
@@ -121,14 +125,27 @@ public class BunnyHead extends AbstractGameObject
 		}
 		dustParticles.update(deltaTime);
 	}
-	
+
+	@Override
+	public void updateMotionY(float deltaTime)
+	{
+		if (velocity.x != 0 && grounded)
+		{
+			dustParticles.setPosition(body.getPosition().x + dimension.x / 2, body.getPosition().y);
+			dustParticles.start();
+		} else
+		{
+			dustParticles.allowCompletion();
+		}
+	}
 
 	/**
 	 * Changes color of the bunny to yellow when the feather is collected.
 	 * Otherwise just draws the head from the region of the atlas.
 	 */
 	@Override
-	public void render (SpriteBatch batch) {
+	public void render(SpriteBatch batch)
+	{
 		TextureRegion reg = null;
 
 		// Draw Particles
@@ -138,15 +155,16 @@ public class BunnyHead extends AbstractGameObject
 		batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
 
 		// Set special color when game object has a feather power-up
-		if (hasFeatherPowerup) {
+		if (hasFeatherPowerup)
+		{
 			batch.setColor(1.0f, 0.8f, 0.0f, 1.0f);
 		}
 
 		// Draw image
 		reg = regHead;
-		batch.draw(reg.getTexture(), position.x, position.y, origin.x, origin.y, dimension.x, dimension.y, scale.x, scale.y,
-			rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(), reg.getRegionHeight(),
-			viewDirection == VIEW_DIRECTION.LEFT, false);
+		batch.draw(reg.getTexture(), position.x, position.y, origin.x, origin.y, dimension.x, dimension.y, scale.x,
+		        scale.y, rotation, reg.getRegionX(), reg.getRegionY(), reg.getRegionWidth(), reg.getRegionHeight(),
+		        viewDirection == VIEW_DIRECTION.LEFT, false);
 
 		// Reset color to white
 		batch.setColor(1, 1, 1, 1);

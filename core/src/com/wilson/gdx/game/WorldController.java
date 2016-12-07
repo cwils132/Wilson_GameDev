@@ -90,7 +90,7 @@ public class WorldController extends InputAdapter
 	{
 		if (myWorld != null)
 			myWorld.dispose();
-		myWorld = new World(new Vector2(0, -9.81f), true);
+		myWorld = new World(new Vector2(0, -29.81f), true);
 		myWorld.setContactListener(new CollisionHandler(this));
 		Vector2 origin = new Vector2();
 		for (Rock pieceOfLand : level.rocks)
@@ -124,8 +124,8 @@ public class WorldController extends InputAdapter
 			PolygonShape polygonShape = new PolygonShape();
 			origin.x = collectableBook.bounds.width / 2.0f;
 			origin.y = collectableBook.bounds.height / 2.0f;
-			polygonShape.setAsBox(collectableBook.bounds.width / 2.0f, (collectableBook.bounds.height - 0.04f) / 2.0f, origin,
-			        0);
+			polygonShape.setAsBox(collectableBook.bounds.width / 2.0f, (collectableBook.bounds.height - 0.04f) / 2.0f,
+			        origin, 0);
 			FixtureDef fixtureDef = new FixtureDef();
 			fixtureDef.shape = polygonShape;
 			fixtureDef.isSensor = true;
@@ -306,18 +306,10 @@ public class WorldController extends InputAdapter
 			// Player Movement
 			if (Gdx.input.isKeyPressed(Keys.LEFT))
 			{
-				if (level.bunnyHead.grounded){
-				level.bunnyHead.dustParticles.setPosition(level.bunnyHead.body.getPosition().x + level.bunnyHead.dimension.x / 2, level.bunnyHead.body.getPosition().y);
-				level.bunnyHead.dustParticles.start();
-				}
 				level.bunnyHead.velocity.x = -level.bunnyHead.terminalVelocity.x;
 
 			} else if (Gdx.input.isKeyPressed(Keys.RIGHT))
 			{
-				if (level.bunnyHead.grounded){
-				level.bunnyHead.dustParticles.setPosition(level.bunnyHead.body.getPosition().x + level.bunnyHead.dimension.x / 2, level.bunnyHead.body.getPosition().y);
-				level.bunnyHead.dustParticles.start();
-				}
 				level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
 			} else
 			{
@@ -333,17 +325,20 @@ public class WorldController extends InputAdapter
 			{
 				level.bunnyHead.dustParticles.allowCompletion();
 				Vector2 vec = level.bunnyHead.body.getLinearVelocity();
-//				Gdx.app.error(TAG, "Process Space: "+timeHeld);
+				// Gdx.app.error(TAG, "Process Space: "+timeHeld);
 				if (timeHeld < 0.4)
 				{
-//					Gdx.app.error(TAG, "Process Jump: "+timeHeld);
-					if (level.bunnyHead.grounded){
+					// Gdx.app.error(TAG, "Process Jump: "+timeHeld);
+					if (level.bunnyHead.grounded)
+					{
 						AudioManager.instance.play(Assets.instance.sounds.jump);
 					}
 					level.bunnyHead.grounded = false;
 					level.bunnyHead.jumping = true;
-					level.bunnyHead.body.applyLinearImpulse(0.0f, 10.0f, level.bunnyHead.body.getPosition().x, level.bunnyHead.body.getPosition().y, true);
-//					level.bunnyHead.body.setLinearVelocity(vec.x, level.bunnyHead.terminalVelocity.y);
+					level.bunnyHead.body.applyLinearImpulse(0.0f, 10.0f, level.bunnyHead.body.getPosition().x,
+					        level.bunnyHead.body.getPosition().y, true);
+					// level.bunnyHead.body.setLinearVelocity(vec.x,
+					// level.bunnyHead.terminalVelocity.y);
 					level.bunnyHead.position.set(level.bunnyHead.body.getPosition());
 					timeHeld += deltaTime;
 				}
@@ -354,7 +349,7 @@ public class WorldController extends InputAdapter
 	public void resetJump()
 	{
 		timeHeld = 0.0f;
-		Gdx.app.error(TAG, "Reset Time: "+timeHeld);
+		Gdx.app.error(TAG, "Reset Time: " + timeHeld);
 	}
 
 	private void moveCamera(float x, float y)
