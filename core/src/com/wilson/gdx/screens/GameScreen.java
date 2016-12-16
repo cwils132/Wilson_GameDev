@@ -20,6 +20,8 @@ public class GameScreen extends AbstractGameScreen
 	private WorldRenderer worldRenderer;
 
 	private boolean paused;
+	
+	String level;
 
 	public GameScreen(Game game)
 	{

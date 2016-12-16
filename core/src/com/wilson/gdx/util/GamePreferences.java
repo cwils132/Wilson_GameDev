@@ -17,8 +17,10 @@ public class GamePreferences
 	public float volMusic;
 	public int charSkin;
 	public boolean showFpsCounter;
+	public int[] scores = new int[5];
+	public boolean useMonochromeShader;
 
-	private Preferences prefs;
+	public Preferences prefs;
 
 	// singleton: prevent instantiation from other classes
 	private GamePreferences()
@@ -37,6 +39,11 @@ public class GamePreferences
 		volMusic = MathUtils.clamp(prefs.getFloat("volMusic", 0.5f), 0.0f, 1.0f);
 		charSkin = MathUtils.clamp(prefs.getInteger("charSkin", 0), 0, 2);
 		showFpsCounter = prefs.getBoolean("showFpsCounter", false);
+		useMonochromeShader = prefs.getBoolean("useMonochromeShader", false);
+		for (int i = 0; i < scores.length; i++)
+		{
+			scores[i] = prefs.getInteger("score" + i);
+		}
 	}
 
 	/**
@@ -51,6 +58,7 @@ public class GamePreferences
 		prefs.putFloat("volMusic", volMusic);
 		prefs.putInteger("charSkin", charSkin);
 		prefs.putBoolean("showFpsCounter", showFpsCounter);
+		prefs.putBoolean("useMonochromeShader", useMonochromeShader);
 		prefs.flush(); // This writes all changes
 	}
 

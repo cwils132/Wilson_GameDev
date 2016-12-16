@@ -2,7 +2,6 @@ package com.wilson.gdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
@@ -11,6 +10,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.wilson.gdx.util.GamePreferences;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class WorldRenderer implements Disposable
 {
@@ -30,8 +31,13 @@ public class WorldRenderer implements Disposable
 	private SpriteBatch batch;
 	private WorldController worldController;
 	
-	private static final boolean DEBUG_DRAW_BOX2D_WORLD = true;
+	private static final boolean DEBUG_DRAW_BOX2D_WORLD = false;
 	private Box2DDebugRenderer b2DebugRenderer;
+	
+	/**
+	 * Creates a shader that turns the game grayscale.
+	 */
+	private ShaderProgram shaderMonochrome;
 
 
 	public WorldRenderer(WorldController worldController)
@@ -50,14 +56,23 @@ public class WorldRenderer implements Disposable
 	 */
 	private void init()
 	{
-		batch = new SpriteBatch();
-		camera = new OrthographicCamera(Constants.VIEWPORT_WIDTH, Constants.VIEWPORT_HEIGHT);
-		camera.position.set(0, 0, 0);
-		camera.update();
-		cameraGUI = new OrthographicCamera(Constants.VIEWPORT_GUI_WIDTH, Constants.VIEWPORT_GUI_HEIGHT);
-		cameraGUI.position.set(0, 0, 0);
-		cameraGUI.setToOrtho(true); // flip y-axis
-		cameraGUI.update();
+		{
+			batch = new SpriteBatch();
+			camera = new OrthographicCamera(Constants.VIEWPORT_WIDTH, Constants.VIEWPORT_HEIGHT);
+			camera.position.set(0, 0, 0);
+			camera.update();
+			cameraGUI = new OrthographicCamera(Constants.VIEWPORT_GUI_WIDTH, Constants.VIEWPORT_GUI_HEIGHT);
+			cameraGUI.position.set(0, 0, 0);
+			cameraGUI.setToOrtho(true); // flip y-axis
+			cameraGUI.update();
+			shaderMonochrome = new ShaderProgram(Gdx.files.internal(Constants.shaderMonochromeVertex),
+			        Gdx.files.internal(Constants.shaderMonochromeFragment));
+			if (!shaderMonochrome.isCompiled())
+			{
+				String msg = "Could not compile shader program: " + shaderMonochrome.getLog();
+				throw new GdxRuntimeException(msg);
+			}
+		}
 		
 		b2DebugRenderer = new Box2DDebugRenderer();
 	}
@@ -79,7 +94,13 @@ public class WorldRenderer implements Disposable
 		worldController.cameraHelper.applyTo(camera);
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
+		if (GamePreferences.instance.useMonochromeShader)
+		{
+			batch.setShader(shaderMonochrome);
+			shaderMonochrome.setUniformf("u_amount", 1.0f);
+		}
 		worldController.level.render(batch);
+		batch.setShader(null);
 		batch.end();
 		
 		/**
@@ -107,6 +128,8 @@ public class WorldRenderer implements Disposable
 		renderGuiScore(batch);
 		// draw collected feather icon (anchored to top left edge)
 		renderGuiFeatherPowerup(batch);
+		// draw collected feather icon (anchored to top left edge)
+		renderGuiEmeraldPowerup(batch);
 		// draw extra lives icon + text (anchored to top right edge)
 		renderGuiExtraLive(batch);
 		// draw FPS text (anchored to bottom right edge)
@@ -200,6 +223,29 @@ public class WorldRenderer implements Disposable
 			Assets.instance.fonts.defaultSmall.draw(batch, "" + (int) timeLeftFeatherPowerup, x + 60, y + 57);
 		}
 	}
+	
+	private void renderGuiEmeraldPowerup(SpriteBatch batch)
+	{
+		float x = 20;
+		float y = 30;
+		float timeLeftEmeraldPowerup = worldController.level.bunnyHead.timeLeftEmeraldPowerup;
+		if (timeLeftEmeraldPowerup > 0)
+		{
+			// Start icon fade in/out if the left power-up time
+			// is less than 4 seconds. The fade interval is set
+			// to 5 changes per second.
+			if (timeLeftEmeraldPowerup < 4)
+			{
+				if (((int) (timeLeftEmeraldPowerup * 5) % 2) != 0)
+				{
+					batch.setColor(1, 1, 1, 0.5f);
+				}
+			}
+			batch.draw(Assets.instance.emerald.emerald, x, y, 50, 50, 100, 100, 0.35f, -0.35f, 0);
+			batch.setColor(1, 1, 1, 1);
+			Assets.instance.fonts.defaultSmall.draw(batch, "" + (int) timeLeftEmeraldPowerup, x + 60, y + 57);
+		}
+	}
 
 	/**
 	 * Keeps track of our FPS
@@ -266,6 +312,7 @@ public class WorldRenderer implements Disposable
 	public void dispose()
 	{
 		batch.dispose();
+		shaderMonochrome.dispose();
 	}
 
 }

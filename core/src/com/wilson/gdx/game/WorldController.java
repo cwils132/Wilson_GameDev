@@ -13,8 +13,11 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.wilson.gdx.util.CameraHelper;
 import com.wilson.gdx.game.objects.Rock;
+import com.wilson.gdx.game.objects.RoughRock;
 import com.wilson.gdx.util.Constants;
+import com.wilson.gdx.util.GamePreferences;
 import com.badlogic.gdx.Game;
+import com.wilson.gdx.screens.GameScreen;
 import com.wilson.gdx.screens.MenuScreen;
 import com.wilson.gdx.util.AudioManager;
 
@@ -30,10 +33,10 @@ import com.wilson.gdx.util.CollisionHandler;
 import com.badlogic.gdx.math.Rectangle;
 import com.wilson.gdx.game.objects.AbstractGameObject;
 import com.wilson.gdx.game.objects.BunnyHead;
-//import com.wilson.gdx.game.objects.BunnyHead.JUMP_STATE;
 import com.wilson.gdx.game.objects.BunnyHead.VIEW_DIRECTION;
 import com.wilson.gdx.game.objects.Feather;
 import com.wilson.gdx.game.objects.GoldCoin;
+import com.wilson.gdx.game.objects.Portal;
 import com.wilson.gdx.game.objects.Rock;
 
 public class WorldController extends InputAdapter
@@ -47,7 +50,16 @@ public class WorldController extends InputAdapter
 	public float livesVisual; // decreases when lives decrease
 	public float scoreVisual;
 
+	/**
+	 * Helps keep track of portal collision.
+	 */
+	private Rectangle r1 = new Rectangle();
+	private Rectangle r2 = new Rectangle();
+
 	float timeHeld;
+	private boolean portalReached;
+	private String currentLevel;
+	GamePreferences preferences = GamePreferences.instance;
 
 	public Array<AbstractGameObject> objectsToRemove = new Array<AbstractGameObject>();
 
@@ -66,11 +78,15 @@ public class WorldController extends InputAdapter
 		init();
 	}
 
+	/**
+	 * Generates initial level map.
+	 */
 	private void init()
 	{
 		objectsToRemove = new Array<AbstractGameObject>();
 		Gdx.input.setInputProcessor(this);
 		cameraHelper = new CameraHelper();
+		currentLevel = Constants.LEVEL_01;
 		lives = Constants.LIVES_START;
 		livesVisual = lives;
 		timeLeftGameOverDelay = 0;
@@ -78,18 +94,51 @@ public class WorldController extends InputAdapter
 	}
 
 	/**
+	 * Sets the stage for the second level. A boolean in update
+	 * checks if the portal has been reached on the first or second
+	 * level. If the first is reached, these two methods are then called
+	 * and the new map generated. Scores and lives are preserved.
+	 * @param tranLives
+	 * @param tranScore
+	 */
+	private void initSecond(int tranLives, int tranScore)
+	{
+		objectsToRemove = new Array<AbstractGameObject>();
+		Gdx.input.setInputProcessor(this);
+		cameraHelper = new CameraHelper();
+		currentLevel = Constants.LEVEL_02;
+		lives = tranLives;
+		livesVisual = lives;
+		timeLeftGameOverDelay = 0;
+		initLevelTwo(tranScore);
+	}
+
+	private void initLevelTwo(int tranScore)
+	{
+		score = 0;
+		scoreVisual = tranScore;
+		portalReached = false;
+		level = new Level(Constants.LEVEL_02);
+		cameraHelper.setTarget(level.bunnyHead);
+		initPhysics();
+	}
+
+	/**
 	 * Adds physics in to the game to be initialized at the start through
 	 * initLevel();. Defines a KinematicBody for rocks to be used to if
 	 * collision occurs the rocks do not let the player fall through.
 	 *
-	 * Defines a polygon shape for the rocks and a listener for world to monitor
-	 * if collisions occur. If a collision does occur then CollisionHandler is
-	 * called.
+	 * Defines a polygon shape for all items in the game world. Then sets
+	 * physics definitions such as density and friction. Collectible items
+	 * are set as a sensor so that they do not interfere with movement
+	 * on collision.
 	 */
 	private void initPhysics()
 	{
 		if (myWorld != null)
+		{
 			myWorld.dispose();
+		}
 		myWorld = new World(new Vector2(0, -29.81f), true);
 		myWorld.setContactListener(new CollisionHandler(this));
 		Vector2 origin = new Vector2();
@@ -109,7 +158,28 @@ public class WorldController extends InputAdapter
 			FixtureDef fixtureDef = new FixtureDef();
 			fixtureDef.shape = polygonShape;
 			body.createFixture(fixtureDef);
-			fixtureDef.friction = 0.2f;
+
+			fixtureDef.friction = 0.5f;
+			polygonShape.dispose();
+		}
+
+		for (RoughRock pieceOfLand : level.roughRocks)
+		{
+			BodyDef bodyDef = new BodyDef();
+			bodyDef.position.set(pieceOfLand.position);
+			bodyDef.type = BodyType.KinematicBody;
+			Body body = myWorld.createBody(bodyDef);
+			body.setUserData(pieceOfLand);
+			pieceOfLand.body = body;
+			PolygonShape polygonShape = new PolygonShape();
+			origin.x = pieceOfLand.bounds.width / 2.0f;
+			origin.y = pieceOfLand.bounds.height / 2.0f;
+			polygonShape.setAsBox(pieceOfLand.bounds.width / 2.0f, (pieceOfLand.bounds.height - 0.04f) / 2.0f, origin,
+			        0);
+			FixtureDef fixtureDef = new FixtureDef();
+			fixtureDef.shape = polygonShape;
+			body.createFixture(fixtureDef);
+			fixtureDef.friction = 0.0f;
 			polygonShape.dispose();
 		}
 
@@ -126,6 +196,46 @@ public class WorldController extends InputAdapter
 			origin.y = collectableBook.bounds.height / 2.0f;
 			polygonShape.setAsBox(collectableBook.bounds.width / 2.0f, (collectableBook.bounds.height - 0.04f) / 2.0f,
 			        origin, 0);
+			FixtureDef fixtureDef = new FixtureDef();
+			fixtureDef.shape = polygonShape;
+			fixtureDef.isSensor = true;
+			body.createFixture(fixtureDef);
+			polygonShape.dispose();
+		}
+
+		for (Feather collectableFeather : level.feathers)
+		{
+			BodyDef bodyDef = new BodyDef();
+			bodyDef.position.set(collectableFeather.position);
+			bodyDef.type = BodyType.KinematicBody;
+			Body body = myWorld.createBody(bodyDef);
+			body.setUserData(collectableFeather);
+			collectableFeather.body = body;
+			PolygonShape polygonShape = new PolygonShape();
+			origin.x = collectableFeather.bounds.width / 2.0f;
+			origin.y = collectableFeather.bounds.height / 2.0f;
+			polygonShape.setAsBox(collectableFeather.bounds.width / 2.0f,
+			        (collectableFeather.bounds.height - 0.04f) / 2.0f, origin, 0);
+			FixtureDef fixtureDef = new FixtureDef();
+			fixtureDef.shape = polygonShape;
+			fixtureDef.isSensor = true;
+			body.createFixture(fixtureDef);
+			polygonShape.dispose();
+		}
+
+		for (Emerald collectableFeather : level.emeralds)
+		{
+			BodyDef bodyDef = new BodyDef();
+			bodyDef.position.set(collectableFeather.position);
+			bodyDef.type = BodyType.KinematicBody;
+			Body body = myWorld.createBody(bodyDef);
+			body.setUserData(collectableFeather);
+			collectableFeather.body = body;
+			PolygonShape polygonShape = new PolygonShape();
+			origin.x = collectableFeather.bounds.width / 2.0f;
+			origin.y = collectableFeather.bounds.height / 2.0f;
+			polygonShape.setAsBox(collectableFeather.bounds.width / 2.0f,
+			        (collectableFeather.bounds.height - 0.04f) / 2.0f, origin, 0);
 			FixtureDef fixtureDef = new FixtureDef();
 			fixtureDef.shape = polygonShape;
 			fixtureDef.isSensor = true;
@@ -154,13 +264,35 @@ public class WorldController extends InputAdapter
 		PolygonShape polygonShape = new PolygonShape();
 		origin.x = (player.bounds.width) / 2.0f;
 		origin.y = (player.bounds.height) / 2.0f;
-		polygonShape.setAsBox((player.bounds.width - 0.7f) / 2.0f, (player.bounds.height - 0.15f) / 2.0f, origin, 0);
+		polygonShape.setAsBox((player.bounds.width - 0.2f) / 2.0f, (player.bounds.height - 0.15f) / 2.0f, origin, 0);
 
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.shape = polygonShape;
 		fixtureDef.density = 3.0f;
+		fixtureDef.friction = player.friction.x;
 		body.createFixture(fixtureDef);
 		polygonShape.dispose();
+	}
+
+	private void testCollisions()
+	{
+		r1.set(level.bunnyHead.position.x, level.bunnyHead.position.y, level.bunnyHead.bounds.width,
+		        level.bunnyHead.bounds.height);
+		if (!portalReached)
+		{
+			r2.set(level.orangePortal.bounds);
+			r2.x += level.orangePortal.position.x;
+			r2.y += level.orangePortal.position.y;
+			if (r1.overlaps(r2))
+				onCollisionWithPortal();
+		}
+	}
+
+	private void onCollisionWithPortal()
+	{
+		portalReached = true;
+		Vector2 centerPosBunnyHead = new Vector2(level.bunnyHead.position);
+		centerPosBunnyHead.x += level.bunnyHead.bounds.width;
 	}
 
 	/**
@@ -170,6 +302,7 @@ public class WorldController extends InputAdapter
 	{
 		score = 0;
 		scoreVisual = score;
+		portalReached = false;
 		level = new Level(Constants.LEVEL_01);
 		cameraHelper.setTarget(level.bunnyHead);
 		initPhysics();
@@ -205,13 +338,17 @@ public class WorldController extends InputAdapter
 		}
 
 		myWorld.step(deltaTime, 8, 3); // tells box2d world to update
-
+		testCollisions();
 		level.update(deltaTime);
 		cameraHelper.update(deltaTime);
 		if (!isGameOver() && isPlayerInWater())
 		{
 			AudioManager.instance.play(Assets.instance.sounds.liveLost);
 			lives--;
+			if (currentLevel.equalsIgnoreCase(Constants.LEVEL_02))
+			{
+				initLevelTwo(score);
+			}
 			if (isGameOver())
 				timeLeftGameOverDelay = Constants.TIME_DELAY_GAME_OVER;
 			else
@@ -225,6 +362,33 @@ public class WorldController extends InputAdapter
 
 		if (scoreVisual < score)
 			scoreVisual = Math.min(score, scoreVisual + 250 * deltaTime);
+		if (portalReached && currentLevel.equals(Constants.LEVEL_01))
+		{
+			setLevel(Constants.LEVEL_02);
+		}
+		/**
+		 * Changes behavior depending if portal on first or second level is
+		 * reached. If second portal is reached, the game stores your current
+		 * score to a list in Gameprefs and is then printed out in console.
+		 */
+		if (portalReached && currentLevel.equals(Constants.LEVEL_02))
+		{
+			for (int i = 0; i < preferences.scores.length; i++)
+			{
+				if (score > preferences.scores[i])
+				{
+					preferences.prefs.putInteger("score ", preferences.scores[i]);
+					i = preferences.scores.length;
+				}
+			}
+			int x = 1;
+			for (int i = preferences.scores.length; i > preferences.scores.length; i--)
+			{
+				System.out.println(x + " " + preferences.scores[i]);
+				x++;
+			}
+			init();
+		}
 	}
 
 	public boolean isGameOver()
@@ -306,11 +470,27 @@ public class WorldController extends InputAdapter
 			// Player Movement
 			if (Gdx.input.isKeyPressed(Keys.LEFT))
 			{
-				level.bunnyHead.velocity.x = -level.bunnyHead.terminalVelocity.x;
+				if (level.bunnyHead.hasBookmark)
+				{
+					level.bunnyHead.terminalVelocity.set(10.0f, 4.0f);
+					level.bunnyHead.velocity.x = -level.bunnyHead.terminalVelocity.x;
+				} else
+				{
+					level.bunnyHead.terminalVelocity.set(5.0f, 4.0f);
+					level.bunnyHead.velocity.x = -level.bunnyHead.terminalVelocity.x;
+				}
 
 			} else if (Gdx.input.isKeyPressed(Keys.RIGHT))
 			{
-				level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
+				if (level.bunnyHead.hasBookmark)
+				{
+					level.bunnyHead.terminalVelocity.set(10.0f, 4.0f);
+					level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
+				} else
+				{
+					level.bunnyHead.terminalVelocity.set(5.0f, 4.0f);
+					level.bunnyHead.velocity.x = level.bunnyHead.terminalVelocity.x;
+				}
 			} else
 			{
 				// Execute auto-forward movement on non-desktop platform
@@ -321,24 +501,37 @@ public class WorldController extends InputAdapter
 			}
 
 			// Bunny Jump
-			if (Gdx.input.isTouched() || Gdx.input.isKeyPressed(Keys.SPACE))
+			if ((Gdx.input.isTouched() || Gdx.input.isKeyPressed(Keys.SPACE)) && level.bunnyHead.jumping == false)
 			{
 				level.bunnyHead.dustParticles.allowCompletion();
-				Vector2 vec = level.bunnyHead.body.getLinearVelocity();
-				// Gdx.app.error(TAG, "Process Space: "+timeHeld);
-				if (timeHeld < 0.4)
+				level.bunnyHead.sparkParticles.allowCompletion();
+				/**
+				 * Determines how long the jump button can be held before the
+				 * character falls.
+				 */
+				if (timeHeld < 0.35)
 				{
-					// Gdx.app.error(TAG, "Process Jump: "+timeHeld);
 					if (level.bunnyHead.grounded)
 					{
 						AudioManager.instance.play(Assets.instance.sounds.jump);
 					}
+					/**
+					 * Sets boolean grounded to false since he is now jumping
+					 */
 					level.bunnyHead.grounded = false;
-					level.bunnyHead.jumping = true;
-					level.bunnyHead.body.applyLinearImpulse(0.0f, 10.0f, level.bunnyHead.body.getPosition().x,
-					        level.bunnyHead.body.getPosition().y, true);
-					// level.bunnyHead.body.setLinearVelocity(vec.x,
-					// level.bunnyHead.terminalVelocity.y);
+					/**
+					 * Checks to see if the player has an emerald. If true, the
+					 * force upwards is greater. If not, no change.
+					 */
+					if (level.bunnyHead.hasEmerald)
+					{
+						level.bunnyHead.body.applyLinearImpulse(0.0f, 30.0f, level.bunnyHead.body.getPosition().x,
+						        level.bunnyHead.body.getPosition().y, true);
+					} else
+					{
+						level.bunnyHead.body.applyLinearImpulse(0.0f, 20.0f, level.bunnyHead.body.getPosition().x,
+						        level.bunnyHead.body.getPosition().y, true);
+					}
 					level.bunnyHead.position.set(level.bunnyHead.body.getPosition());
 					timeHeld += deltaTime;
 				}
@@ -382,6 +575,9 @@ public class WorldController extends InputAdapter
 		else if (keycode == Keys.ESCAPE || keycode == Keys.BACK)
 		{
 			backToMenu();
+		} else if (keycode == Keys.SPACE)
+		{
+			level.bunnyHead.jumping = true;
 		}
 		return false;
 	}
@@ -394,6 +590,12 @@ public class WorldController extends InputAdapter
 	{
 		// switch to menu screen
 		game.setScreen(new MenuScreen(game));
+	}
+
+	private void setLevel(String level)
+	{
+		// Advance to next level
+		initSecond(lives, score);
 	}
 
 	public void flagForRemoval(AbstractGameObject obj)

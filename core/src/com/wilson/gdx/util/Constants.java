@@ -25,18 +25,26 @@ public class Constants
 
 	// Location of image file for level 01
 	public static final String LEVEL_01 = "../core/assets/images/level-01.png";
+	public static final String LEVEL_02 = "../core/assets/images/level-02.png";
 
 	// Amount of extra lives at level start
 	public static final int LIVES_START = 3;
 
 	// Duration of feather power-up in seconds
 	public static final float ITEM_FEATHER_POWERUP_DURATION = 9;
+	
+	// Duration of emerald power-up in seconds
+	public static final float ITEM_EMERALD_POWERUP_DURATION = 9;
 
 	// Delay after game over
 	public static final float TIME_DELAY_GAME_OVER = 3;
 
 	// Game preferences file
 	public static final String PREFERENCES = "canyonbunny.prefs";
+	
+	// Shader
+	public static final String shaderMonochromeVertex = "../core/assets/shaders/monochrome.vs";
+	public static final String shaderMonochromeFragment = "../core/assets/shaders/monochrome.fs";
 
 	// Location of description file for skins
 	public static final String SKIN_LIBGDX_UI = "../core/assets/images/uiskin.json";
