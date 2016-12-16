@@ -33,7 +33,9 @@ public class Assets implements Disposable, AssetErrorListener
 	public AssetRock rock;
 	public AssetRedBook redBook;
 	public AssetFeather feather;
+	public AssetEmerald emerald;
 	public AssetLevelDecoration levelDecoration;
+	public AssetRough rough;
 
 	public AssetSounds sounds;
 	public AssetMusic music;
@@ -107,6 +109,18 @@ public class Assets implements Disposable, AssetErrorListener
 			middle = atlas.findRegion("floor_middle");
 		}
 	}
+	
+	public class AssetRough
+	{
+		public final AtlasRegion roughEdge;
+		public final AtlasRegion roughMiddle;
+
+		public AssetRough(TextureAtlas atlas)
+		{
+			roughEdge = atlas.findRegion("rough_floor_edge");
+			roughMiddle = atlas.findRegion("rough_floor_middle");
+		}
+	}
 
 	public class AssetRedBook
 	{
@@ -134,7 +148,17 @@ public class Assets implements Disposable, AssetErrorListener
 
 		public AssetFeather(TextureAtlas atlas)
 		{
-			ruby = atlas.findRegion("ruby");
+			ruby = atlas.findRegion("bookmark");
+		}
+	}
+	
+	public class AssetEmerald
+	{
+		public final AtlasRegion emerald;
+
+		public AssetEmerald(TextureAtlas atlas)
+		{
+			emerald = atlas.findRegion("emerald");
 		}
 	}
 
@@ -147,6 +171,9 @@ public class Assets implements Disposable, AssetErrorListener
 		public final AtlasRegion backgroundRight;
 		public final AtlasRegion backgroundMiddle;
 		public final AtlasRegion dustOverlay;
+		public final AtlasRegion oPortal;
+		
+		public final Animation animOrangePortal;
 
 		public AssetLevelDecoration(TextureAtlas atlas)
 		{
@@ -157,6 +184,16 @@ public class Assets implements Disposable, AssetErrorListener
 			backgroundRight = atlas.findRegion("background3");
 			backgroundMiddle = atlas.findRegion("background2");
 			dustOverlay = atlas.findRegion("dust_overlay");
+			oPortal = atlas.findRegion("orange_portal");
+			
+			// Animation: Red book
+			Array<AtlasRegion> regions = atlas.findRegions("anim_orange_portal");
+			AtlasRegion region = regions.first();
+			for (int i = 0; i < 10; i++)
+			{
+				regions.insert(0, region);
+			}
+			animOrangePortal = new Animation(1.0f / 20.f, regions, Animation.PlayMode.LOOP_PINGPONG);
 		}
 	}
 
@@ -206,8 +243,10 @@ public class Assets implements Disposable, AssetErrorListener
 		fonts = new AssetFonts();
 		character = new AssetBunny(atlas);
 		rock = new AssetRock(atlas);
+		rough = new AssetRough(atlas);
 		redBook = new AssetRedBook(atlas);
 		feather = new AssetFeather(atlas);
+		emerald = new AssetEmerald(atlas);
 		levelDecoration = new AssetLevelDecoration(atlas);
 		sounds = new AssetSounds(assetManager);
 		music = new AssetMusic(assetManager);

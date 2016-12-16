@@ -21,6 +21,7 @@ public class BunnyHead extends AbstractGameObject
 	public boolean jumping;
 
 	public ParticleEffect dustParticles = new ParticleEffect();
+	public ParticleEffect sparkParticles = new ParticleEffect();
 
 	public enum VIEW_DIRECTION
 	{
@@ -42,8 +43,10 @@ public class BunnyHead extends AbstractGameObject
 	public float timeJumping;
 	// public JUMP_STATE jumpState;
 
-	public boolean hasFeatherPowerup;
+	public boolean hasBookmark;
+	public boolean hasEmerald;
 	public float timeLeftFeatherPowerup;
+	public float timeLeftEmeraldPowerup;
 
 	public BunnyHead()
 	{
@@ -75,23 +78,24 @@ public class BunnyHead extends AbstractGameObject
 
 		// Set physics values
 		terminalVelocity.set(5.0f, 4.0f);
-		friction.set(12.0f, 0.0f);
+		friction.set(2.0f, 0.0f);
 		acceleration.set(0.0f, -25.0f);
 
 		// View direction
 		viewDirection = VIEW_DIRECTION.RIGHT;
 
-		// Jump state
-		// jumpState = JUMP_STATE.FALLING;
-		grounded = true;
+		// Time at start of jump
 		timeJumping = 0;
 
 		// Power-ups
-		hasFeatherPowerup = false;
+		hasBookmark = false;
 		timeLeftFeatherPowerup = 0;
+		timeLeftEmeraldPowerup = 0;
 
 		// Particles
 		dustParticles.load(Gdx.files.internal("../core/assets/particles/dust.pfx"),
+		        Gdx.files.internal("../core/assets/particles"));
+		sparkParticles.load(Gdx.files.internal("../core/assets/particles/sparks.pfx"),
 		        Gdx.files.internal("../core/assets/particles"));
 	}
 
@@ -123,7 +127,23 @@ public class BunnyHead extends AbstractGameObject
 				setFeatherPowerup(false);
 			}
 		}
-		dustParticles.update(deltaTime);
+		if (timeLeftEmeraldPowerup > 0)
+		{
+			timeLeftEmeraldPowerup -= deltaTime;
+			if (timeLeftEmeraldPowerup < 0)
+			{
+				// disable power-up
+				timeLeftEmeraldPowerup = 0;
+				setEmeraldPowerup(false);
+			}
+		}
+		if (hasBookmark)
+		{
+			sparkParticles.update(deltaTime);
+		} else
+		{
+			dustParticles.update(deltaTime);
+		}
 	}
 
 	@Override
@@ -131,11 +151,19 @@ public class BunnyHead extends AbstractGameObject
 	{
 		if (velocity.x != 0 && grounded)
 		{
-			dustParticles.setPosition(body.getPosition().x + dimension.x / 2, body.getPosition().y);
-			dustParticles.start();
+			if (hasBookmark)
+			{
+				sparkParticles.setPosition(body.getPosition().x + dimension.x / 2, body.getPosition().y);
+				sparkParticles.start();
+			} else
+			{
+				dustParticles.setPosition(body.getPosition().x + dimension.x / 2, body.getPosition().y);
+				dustParticles.start();
+			}
 		} else
 		{
 			dustParticles.allowCompletion();
+			sparkParticles.allowCompletion();
 		}
 	}
 
@@ -149,15 +177,26 @@ public class BunnyHead extends AbstractGameObject
 		TextureRegion reg = null;
 
 		// Draw Particles
-		dustParticles.draw(batch);
+		if (hasBookmark)
+		{
+			sparkParticles.draw(batch);
+		} else
+		{
+			dustParticles.draw(batch);
+		}
 
 		// Apply Skin Color
 		batch.setColor(CharacterSkin.values()[GamePreferences.instance.charSkin].getColor());
 
 		// Set special color when game object has a feather power-up
-		if (hasFeatherPowerup)
+		if (hasBookmark)
 		{
-			batch.setColor(1.0f, 0.8f, 0.0f, 1.0f);
+			batch.setColor(1.0f, 0.3f, 0.0f, 1.0f);
+		}
+		
+		if (hasEmerald)
+		{
+			batch.setColor(0.0f, 0.3f, 1.0f, 1.0f);
 		}
 
 		// Draw image
@@ -177,10 +216,19 @@ public class BunnyHead extends AbstractGameObject
 	 */
 	public void setFeatherPowerup(boolean pickedUp)
 	{
-		hasFeatherPowerup = pickedUp;
+		hasBookmark = pickedUp;
 		if (pickedUp)
 		{
 			timeLeftFeatherPowerup = Constants.ITEM_FEATHER_POWERUP_DURATION;
+		}
+	}
+	
+	public void setEmeraldPowerup(boolean pickedUp)
+	{
+		hasEmerald = pickedUp;
+		if (pickedUp)
+		{
+			timeLeftEmeraldPowerup = Constants.ITEM_EMERALD_POWERUP_DURATION;
 		}
 	}
 
@@ -192,18 +240,11 @@ public class BunnyHead extends AbstractGameObject
 	 */
 	public boolean hasFeatherPowerup()
 	{
-		return hasFeatherPowerup && timeLeftFeatherPowerup > 0;
+		return hasBookmark && timeLeftFeatherPowerup > 0;
 	}
-
-	/**
-	 * Controls the jumping command. jumpKeyPressed means if the spacebar is
-	 * pressed, react accordingly.
-	 * 
-	 * On ground, jump. If in the air and space is let go, fall.
-	 * 
-	 * If falling and has feather, fall slower. Otherwise just fall.
-	 * 
-	 * @param jumpKeyPressed
-	 */
-
+	
+	public boolean hasEmeraldPowerup()
+	{
+		return hasEmerald && timeLeftEmeraldPowerup > 0;
+	}
 }

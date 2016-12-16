@@ -7,9 +7,12 @@ import com.badlogic.gdx.utils.Array;
 import com.wilson.gdx.game.objects.AbstractGameObject;
 import com.wilson.gdx.game.objects.Clouds;
 import com.wilson.gdx.game.objects.Mountains;
+import com.wilson.gdx.game.objects.Portal;
 import com.wilson.gdx.game.objects.Rock;
+import com.wilson.gdx.game.objects.RoughRock;
 import com.wilson.gdx.game.objects.WaterOverlay;
-
+import com.wilson.gdx.screens.GameScreen;
+import com.wilson.gdx.util.Constants;
 import com.wilson.gdx.game.objects.BunnyHead;
 import com.wilson.gdx.game.objects.Feather;
 import com.wilson.gdx.game.objects.GoldCoin;
@@ -19,6 +22,7 @@ public class Level
 	public BunnyHead bunnyHead;
 	public Array<GoldCoin> goldcoins;
 	public Array<Feather> feathers;
+	public Array<Emerald> emeralds;
 
 	/**
 	 * At the moment, our level builder is only capable of spawning 4 objects.
@@ -40,7 +44,10 @@ public class Level
 	public enum BLOCK_TYPE
 	{
 		EMPTY(0, 0, 0), // black
+		ORANGE_PORTAL(255, 100, 0), // orange
 		ROCK(0, 255, 0), // green
+		ITEM_EMERALD(100, 100, 100), // gray
+		ROUGH_ROCK(0, 0, 255), // blue
 		PLAYER_SPAWNPOINT(255, 255, 255), // white
 		ITEM_FEATHER(255, 0, 255), // purple
 		ITEM_GOLD_COIN(255, 255, 0); // yellow
@@ -65,11 +72,13 @@ public class Level
 
 	// objects
 	public Array<Rock> rocks;
+	public Array<RoughRock> roughRocks;
 
 	// decoration
 	public Clouds clouds;
 	public Mountains mountains;
 	public WaterOverlay waterOverlay;
+	public Portal orangePortal;
 
 	public Level(String filename)
 	{
@@ -97,8 +106,10 @@ public class Level
 
 		// objects
 		rocks = new Array<Rock>();
+		roughRocks = new Array<RoughRock>();
 		goldcoins = new Array<GoldCoin>();
 		feathers = new Array<Feather>();
+		emeralds = new Array<Emerald>();
 
 		// load image file that represents the level data
 		Pixmap pixmap = new Pixmap(Gdx.files.internal(filename));
@@ -138,6 +149,21 @@ public class Level
 						rocks.get(rocks.size - 1).increaseLength(1);
 					}
 				}
+				
+				else if (BLOCK_TYPE.ROUGH_ROCK.sameColor(currentPixel))
+				{
+					if (lastPixel != currentPixel)
+					{
+						obj = new RoughRock();
+						float heightIncreaseFactor = 0.25f;
+						offsetHeight = -2.5f;
+						obj.position.set(pixelX, baseHeight * obj.dimension.y * heightIncreaseFactor + offsetHeight);
+						roughRocks.add((RoughRock) obj);
+					} else
+					{
+						roughRocks.get(roughRocks.size - 1).increaseLength(1);
+					}
+				}
 				// player spawn point
 				else if (BLOCK_TYPE.PLAYER_SPAWNPOINT.sameColor(currentPixel))
 				{
@@ -156,14 +182,30 @@ public class Level
 					feathers.add((Feather) obj);
 
 				}
+				// emerald
+				else if (BLOCK_TYPE.ITEM_EMERALD.sameColor(currentPixel))
+				{
+					obj = new Emerald();
+					offsetHeight = 0.5f;
+					obj.position.set(pixelX, baseHeight * obj.dimension.y + offsetHeight);
+					emeralds.add((Emerald) obj);
+
+				}
 				// gold coin
 				else if (BLOCK_TYPE.ITEM_GOLD_COIN.sameColor(currentPixel))
 				{
 					obj = new GoldCoin();
-					offsetHeight = 0.5f;
+					offsetHeight = 1.0f;
 					obj.position.set(pixelX, baseHeight * obj.dimension.y + offsetHeight);
 					goldcoins.add((GoldCoin) obj);
 
+				}
+				// portal
+				else if (BLOCK_TYPE.ORANGE_PORTAL.sameColor(currentPixel)) {
+					obj = new Portal();
+					offsetHeight = -1.0f;
+					obj.position.set(pixelX, baseHeight + offsetHeight);
+					orangePortal = (Portal)obj;
 				}
 				// unknown object/pixel color
 				else
@@ -205,15 +247,22 @@ public class Level
 	{
 		// Draw Mountains
 		mountains.render(batch);
+		// Draw Goal
+		orangePortal.render(batch);
 		// Draw Rocks
 		for (Rock rock : rocks)
 			rock.render(batch);
+		for (RoughRock rRock : roughRocks)
+			rRock.render(batch);
 		// Draw Gold Coins
 		for (GoldCoin goldCoin : goldcoins)
 			goldCoin.render(batch);
 		// Draw Feathers
 		for (Feather feather : feathers)
 			feather.render(batch);
+		// Draw Emeralds
+		for (Emerald emerald : emeralds)
+			emerald.render(batch);
 		// Draw Player Character
 		bunnyHead.render(batch);
 		// Draw Water Overlay
@@ -234,14 +283,20 @@ public class Level
 		// Rocks
 		for (Rock rock : rocks)
 			rock.update(deltaTime);
+		// Rough Rocks
+		for (RoughRock rRock : roughRocks)
+			rRock.update(deltaTime);
 		// Gold Coins
 		for (GoldCoin goldCoin : goldcoins)
 			goldCoin.update(deltaTime);
 		// Feathers
 		for (Feather feather : feathers)
 			feather.update(deltaTime);
+		// Emeralds
+		for (Emerald emerald : emeralds)
+			emerald.update(deltaTime);
 		// Clouds
 		clouds.update(deltaTime);
+		orangePortal.update(deltaTime);
 	}
-
 }
